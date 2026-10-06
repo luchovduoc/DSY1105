@@ -5,6 +5,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.duoc.dsy1105.ui.screens.HomeScreen
 import com.duoc.dsy1105.ui.screens.LoginScreen
 import com.duoc.dsy1105.viewmodel.LoginViewModel
 
@@ -24,8 +25,10 @@ fun AppNav() {
             )
         }
         composable("home") {
-            // HomeScreen irá aquí
+            HomeScreen(
+                navController = navController,
+                viewModel = loginViewModel
+            )
         }
     }
 }
-
