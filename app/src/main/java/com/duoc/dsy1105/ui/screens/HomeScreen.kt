@@ -65,7 +65,8 @@ fun HomeScreen(
                     icon = { Icon(Icons.Filled.Business, contentDescription = null) },
                     label = { Text("Organizaciones") },
                     selected = false,
-                    onClick = { scope.launch { drawerState.close() } }
+                    onClick = { scope.launch { drawerState.close() }
+                        navController.navigate("organizaciones")}
                 )
 
                 NavigationDrawerItem(
