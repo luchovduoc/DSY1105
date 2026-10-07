@@ -73,7 +73,8 @@ fun HomeScreen(
                     icon = { Icon(Icons.Filled.People, contentDescription = null) },
                     label = { Text("Contactos") },
                     selected = false,
-                    onClick = { scope.launch { drawerState.close() } }
+                    onClick = { scope.launch { drawerState.close() }
+                        navController.navigate("contactos")}
                 )
 
                 Divider(modifier = Modifier.padding(vertical = 8.dp))
