@@ -57,7 +57,8 @@ fun HomeScreen(
                     icon = { Icon(Icons.Filled.Event, contentDescription = null) },
                     label = { Text("Eventos") },
                     selected = false,
-                    onClick = { scope.launch { drawerState.close() } }
+                    onClick = { scope.launch { drawerState.close() }
+                        navController.navigate("eventos")}
                 )
 
                 NavigationDrawerItem(

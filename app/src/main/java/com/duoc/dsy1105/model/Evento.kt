@@ -11,7 +11,7 @@ data class Evento(
     val direccion: String,
     val comuna: String,
     val region: String,
-    val organizacion: Organizacion,
+    val organizacion: Organizacion?,
     val publicoEsperado: String,
     val cantidadEstimadaAsistentes: Int,
     val condicionesParticipacion: String,
