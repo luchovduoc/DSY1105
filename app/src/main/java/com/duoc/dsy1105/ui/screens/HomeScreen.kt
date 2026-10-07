@@ -2,6 +2,7 @@ package com.duoc.dsy1105.ui.screens
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -72,13 +73,15 @@ fun HomeScreen(
                 Divider(modifier = Modifier.padding(vertical = 8.dp))
 
                 NavigationDrawerItem(
-                    icon = { Icon(Icons.Filled.ExitToApp, contentDescription = null) },
+                    icon = { Icon(Icons.AutoMirrored.Filled.Logout, contentDescription = null) },
                     label = { Text("Cerrar Sesión") },
                     selected = false,
                     onClick = {
                         scope.launch { drawerState.close() }
+                        viewModel.cerrarSesion()
                         navController.navigate("login")
                     }
+
                 )
             }
         }

@@ -27,5 +27,10 @@ class LoginViewModel : ViewModel() {
             _error.value = "Email o contraseña incorrectos"
         }
     }
+
+    fun cerrarSesion() {
+        _usuario.value = null
+        _error.value = null
+    }
 }
 
