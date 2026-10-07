@@ -2,6 +2,7 @@ package com.duoc.dsy1105.ui.screens
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.FormatListBulleted
 import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
@@ -43,10 +44,13 @@ fun HomeScreen(
                 Divider(modifier = Modifier.padding(vertical = 8.dp))
 
                 NavigationDrawerItem(
-                    icon = { Icon(Icons.Filled.List, contentDescription = null) },
+                    icon = { Icon(Icons.AutoMirrored.Filled.FormatListBulleted, contentDescription = null) },
                     label = { Text("Oportunidades") },
                     selected = false,
-                    onClick = { scope.launch { drawerState.close() } }
+                    onClick = {
+                        scope.launch { drawerState.close() }
+                        navController.navigate("oportunidades")
+                    }
                 )
 
                 NavigationDrawerItem(

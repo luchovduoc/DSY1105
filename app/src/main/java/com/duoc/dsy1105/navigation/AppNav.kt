@@ -7,6 +7,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.duoc.dsy1105.ui.screens.HomeScreen
 import com.duoc.dsy1105.ui.screens.LoginScreen
+import com.duoc.dsy1105.ui.screens.OportunidadesScreen
 import com.duoc.dsy1105.viewmodel.LoginViewModel
 
 @Composable
@@ -29,6 +30,10 @@ fun AppNav() {
                 navController = navController,
                 viewModel = loginViewModel
             )
+        }
+
+        composable("oportunidades") {
+            OportunidadesScreen(navController = navController)
         }
     }
 }

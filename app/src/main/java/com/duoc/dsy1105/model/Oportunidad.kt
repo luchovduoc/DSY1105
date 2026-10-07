@@ -6,7 +6,7 @@ data class Oportunidad(
     val tipoOportunidad: String,
     val descripcion: String,
     val fechaDeteccion: String,
-    val responsable: Usuario,
+    val responsable: Usuario?,
     val nivelPrioridad: String,
     val potencialComercial: String,
     val estado: String,
