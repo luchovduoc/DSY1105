@@ -8,41 +8,20 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import com.duoc.dsy1105.model.Oportunidad
+import com.duoc.dsy1105.database.OportunidadEntity
+import com.duoc.dsy1105.viewmodel.OportunidadViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun OportunidadesScreen(navController: NavController) {
 
-    val oportunidades = listOf(
-        Oportunidad(
-            id = 1,
-            nombre = "Feria Laboral USACH",
-            tipoOportunidad = "Feria empresarial",
-            descripcion = "Feria anual con más de 5000 asistentes",
-            fechaDeteccion = "2026-09-01",
-            responsable = null,
-            nivelPrioridad = "Alta",
-            potencialComercial = "Alto",
-            estado = "Evento identificado",
-            observaciones = ""
-        ),
-        Oportunidad(
-            id = 2,
-            nombre = "Jornada de Beneficios Municipalidad",
-            tipoOportunidad = "Actividad municipal",
-            descripcion = "Jornada mensual de beneficios para funcionarios",
-            fechaDeteccion = "2026-09-05",
-            responsable = null,
-            nivelPrioridad = "Media",
-            potencialComercial = "Medio",
-            estado = "Contacto pendiente",
-            observaciones = ""
-        )
-    )
+    val viewModel: OportunidadViewModel = viewModel()
+    val oportunidades by viewModel.oportunidades.collectAsState()
 
     Scaffold(
         topBar = {
@@ -59,27 +38,55 @@ fun OportunidadesScreen(navController: NavController) {
             )
         },
         floatingActionButton = {
-            FloatingActionButton(onClick = { /* agregar oportunidad */ }) {
+            FloatingActionButton(onClick = {
+                // Insertar oportunidad de prueba
+                viewModel.insertar(
+                    OportunidadEntity(
+                        nombre = "Feria Laboral USACH",
+                        tipoOportunidad = "Feria empresarial",
+                        descripcion = "Feria anual con más de 5000 asistentes",
+                        fechaDeteccion = "2026-09-01",
+                        nivelPrioridad = "Alta",
+                        potencialComercial = "Alto",
+                        estado = "Evento identificado",
+                        observaciones = ""
+                    )
+                )
+            }) {
                 Icon(Icons.Filled.Add, contentDescription = "Agregar")
             }
         }
     ) { innerPadding ->
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding)
-                .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            items(oportunidades) { oportunidad ->
-                OportunidadCard(oportunidad = oportunidad)
+        if (oportunidades.isEmpty()) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(innerPadding),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = "No hay oportunidades registradas",
+                    style = MaterialTheme.typography.bodyMedium
+                )
+            }
+        } else {
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(innerPadding)
+                    .padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                items(oportunidades) { oportunidad ->
+                    OportunidadCard(oportunidad = oportunidad)
+                }
             }
         }
     }
 }
 
 @Composable
-fun OportunidadCard(oportunidad: Oportunidad) {
+fun OportunidadCard(oportunidad: OportunidadEntity) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
