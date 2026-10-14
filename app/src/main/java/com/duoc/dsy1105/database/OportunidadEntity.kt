@@ -9,10 +9,11 @@ data class OportunidadEntity(
     val nombre: String,
     val tipoOportunidad: String,
     val descripcion: String,
+    val fuente: String,
     val fechaDeteccion: String,
     val nivelPrioridad: String,
     val potencialComercial: String,
     val estado: String,
     val observaciones: String
-)
+) // fin data class OportunidadEntity
 

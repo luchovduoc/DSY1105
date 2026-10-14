@@ -39,23 +39,11 @@ fun OportunidadesScreen(navController: NavController) {
         },
         floatingActionButton = {
             FloatingActionButton(onClick = {
-                // Insertar oportunidad de prueba
-                viewModel.insertar(
-                    OportunidadEntity(
-                        nombre = "Feria Laboral USACH",
-                        tipoOportunidad = "Feria empresarial",
-                        descripcion = "Feria anual con más de 5000 asistentes",
-                        fechaDeteccion = "2026-09-01",
-                        nivelPrioridad = "Alta",
-                        potencialComercial = "Alto",
-                        estado = "Evento identificado",
-                        observaciones = ""
-                    )
-                )
+                navController.navigate("oportunidad_form")
             }) {
                 Icon(Icons.Filled.Add, contentDescription = "Agregar")
             }
-        }
+        } // fin floatingActionButton
     ) { innerPadding ->
         if (oportunidades.isEmpty()) {
             Box(
