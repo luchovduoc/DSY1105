@@ -9,6 +9,7 @@ import com.duoc.dsy1105.ui.screens.ContactosScreen
 import com.duoc.dsy1105.ui.screens.EventosScreen
 import com.duoc.dsy1105.ui.screens.HomeScreen
 import com.duoc.dsy1105.ui.screens.LoginScreen
+import com.duoc.dsy1105.ui.screens.OportunidadFormScreen
 import com.duoc.dsy1105.ui.screens.OportunidadesScreen
 import com.duoc.dsy1105.ui.screens.OrganizacionesScreen
 import com.duoc.dsy1105.viewmodel.LoginViewModel
@@ -49,6 +50,10 @@ fun AppNav() {
 
         composable("contactos") {
             ContactosScreen(navController = navController)
+        }
+
+        composable("oportunidad_form") {
+            OportunidadFormScreen(navController = navController)
         }
     }
 }
