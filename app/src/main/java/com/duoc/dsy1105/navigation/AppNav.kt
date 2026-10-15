@@ -52,8 +52,14 @@ fun AppNav() {
             ContactosScreen(navController = navController)
         }
 
-        composable("oportunidad_form") {
-            OportunidadFormScreen(navController = navController)
+        composable("oportunidad_form?id={id}") { backStackEntry ->
+            val id = backStackEntry.arguments?.getString("id")?.toLongOrNull()
+            OportunidadFormScreen(
+                navController = navController,
+                oportunidadId = id
+            )
         }
+
+
     }
 }

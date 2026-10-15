@@ -15,10 +15,21 @@ import com.duoc.dsy1105.viewmodel.OportunidadViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun OportunidadFormScreen(navController: NavController) {
+fun OportunidadFormScreen(
+    navController: NavController,
+    oportunidadId: Long? = null
+) {
 
     val viewModel: OportunidadViewModel = viewModel()
     val estado by viewModel.estado.collectAsState()
+    val esEdicion = oportunidadId != null
+
+    // Si es edicion carga los datos
+    LaunchedEffect(oportunidadId) {
+        if (oportunidadId != null) {
+            viewModel.cargarOportunidad(oportunidadId)
+        }
+    } // fin LaunchedEffect carga
 
     // Navega de vuelta cuando se guarda exitosamente
     LaunchedEffect(estado.guardadoExitosamente) {
@@ -26,12 +37,12 @@ fun OportunidadFormScreen(navController: NavController) {
             viewModel.limpiarFormulario()
             navController.popBackStack()
         }
-    } // fin LaunchedEffect
+    } // fin LaunchedEffect guardado
 
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Nueva Oportunidad") },
+                title = { Text(if (esEdicion) "Editar Oportunidad" else "Nueva Oportunidad") },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
                         Icon(
@@ -128,7 +139,13 @@ fun OportunidadFormScreen(navController: NavController) {
 
             // Boton guardar
             Button(
-                onClick = { viewModel.guardar {} },
+                onClick = {
+                    if (esEdicion) {
+                        viewModel.actualizar(oportunidadId!!) {}
+                    } else {
+                        viewModel.guardar {}
+                    }
+                },
                 modifier = Modifier.fillMaxWidth(),
                 enabled = !estado.guardando
             ) {
@@ -138,7 +155,7 @@ fun OportunidadFormScreen(navController: NavController) {
                         strokeWidth = 2.dp
                     )
                 } else {
-                    Text("Guardar")
+                    Text(if (esEdicion) "Actualizar" else "Guardar")
                 }
             } // fin Button
 
@@ -147,4 +164,3 @@ fun OportunidadFormScreen(navController: NavController) {
     } // fin Scaffold
 
 } // fin OportunidadFormScreen
-

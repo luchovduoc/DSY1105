@@ -117,4 +117,54 @@ class OportunidadViewModel(app: Application) : AndroidViewModel(app) {
         _estado.update { OportunidadUiState() }
     } // fin limpiarFormulario
 
+    // Cargar oportunidad para editar
+    fun cargarOportunidad(id: Long) {
+        viewModelScope.launch {
+            repository.obtenerPorId(id).collect { entity ->
+                entity?.let {
+                    _estado.update { _ ->
+                        OportunidadUiState(
+                            nombre = entity.nombre,
+                            tipoOportunidad = entity.tipoOportunidad,
+                            descripcion = entity.descripcion,
+                            fuente = entity.fuente,
+                            nivelPrioridad = entity.nivelPrioridad,
+                            potencialComercial = entity.potencialComercial,
+                            estado = entity.estado,
+                            observaciones = entity.observaciones
+                        )
+                    } // fin update
+                } // fin let
+            } // fin collect
+        } // fin launch
+    } // fin cargarOportunidad
+
+    // Actualizar oportunidad existente
+    fun actualizar(id: Long, onListo: () -> Unit) {
+        if (!validar()) return
+
+        viewModelScope.launch {
+            _estado.update { it.copy(guardando = true) }
+
+            val a = _estado.value
+            repository.actualizar(
+                OportunidadEntity(
+                    id = id,
+                    nombre = a.nombre,
+                    tipoOportunidad = a.tipoOportunidad,
+                    descripcion = a.descripcion,
+                    fuente = a.fuente,
+                    fechaDeteccion = "",
+                    nivelPrioridad = a.nivelPrioridad,
+                    potencialComercial = a.potencialComercial,
+                    estado = a.estado,
+                    observaciones = a.observaciones
+                )
+            )
+
+            _estado.update { it.copy(guardando = false, guardadoExitosamente = true) }
+            onListo()
+        } // fin launch
+    } // fin actualizar
+
 } // fin class OportunidadViewModel

@@ -1,5 +1,6 @@
 package com.duoc.dsy1105.ui.screens
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -36,7 +37,7 @@ fun OportunidadesScreen(navController: NavController) {
                     }
                 }
             )
-        },
+        }, // fin topBar
         floatingActionButton = {
             FloatingActionButton(onClick = {
                 navController.navigate("oportunidad_form")
@@ -45,6 +46,7 @@ fun OportunidadesScreen(navController: NavController) {
             }
         } // fin floatingActionButton
     ) { innerPadding ->
+
         if (oportunidades.isEmpty()) {
             Box(
                 modifier = Modifier
@@ -56,7 +58,7 @@ fun OportunidadesScreen(navController: NavController) {
                     text = "No hay oportunidades registradas",
                     style = MaterialTheme.typography.bodyMedium
                 )
-            }
+            } // fin Box
         } else {
             LazyColumn(
                 modifier = Modifier
@@ -66,17 +68,29 @@ fun OportunidadesScreen(navController: NavController) {
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 items(oportunidades) { oportunidad ->
-                    OportunidadCard(oportunidad = oportunidad)
-                }
-            }
+                    OportunidadCard(
+                        oportunidad = oportunidad,
+                        onClick = {
+                            navController.navigate("oportunidad_form?id=${oportunidad.id}")
+                        }
+                    )
+                } // fin items
+            } // fin LazyColumn
         }
-    }
-}
+
+    } // fin Scaffold
+
+} // fin OportunidadesScreen
 
 @Composable
-fun OportunidadCard(oportunidad: OportunidadEntity) {
+fun OportunidadCard(
+    oportunidad: OportunidadEntity,
+    onClick: () -> Unit
+) {
     Card(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onClick() },
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {
         Column(
@@ -104,7 +118,7 @@ fun OportunidadCard(oportunidad: OportunidadEntity) {
                     text = oportunidad.estado,
                     style = MaterialTheme.typography.bodySmall
                 )
-            }
-        }
-    }
-}
+            } // fin Row
+        } // fin Column
+    } // fin Card
+} // fin OportunidadCard

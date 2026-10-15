@@ -17,6 +17,10 @@ class OportunidadRepository(context: Context) {
         return dao.obtenerPorEstado(estado)
     }
 
+    fun obtenerPorId(id: Long): Flow<OportunidadEntity?> {
+        return dao.obtenerPorId(id)
+    } // fin obtenerPorId
+
     suspend fun insertar(oportunidad: OportunidadEntity) {
         dao.insertar(oportunidad)
     }
