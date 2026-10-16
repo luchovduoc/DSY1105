@@ -1,17 +1,27 @@
 package com.duoc.dsy1105.ui.screens
 
+import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.core.content.FileProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import coil.compose.AsyncImage
 import com.duoc.dsy1105.viewmodel.OportunidadViewModel
+import java.io.File
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -23,6 +33,19 @@ fun OportunidadFormScreen(
     val viewModel: OportunidadViewModel = viewModel()
     val estado by viewModel.estado.collectAsState()
     val esEdicion = oportunidadId != null
+    val context = LocalContext.current
+
+    // URI temporal para la foto
+    var fotoUri by remember { mutableStateOf<Uri?>(null) }
+
+    // Launcher para abrir la camara
+    val cameraLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.TakePicture()
+    ) { exito ->
+        if (exito && fotoUri != null) {
+            viewModel.onFotoUriChange(fotoUri.toString())
+        }
+    } // fin cameraLauncher
 
     // Si es edicion carga los datos
     LaunchedEffect(oportunidadId) {
@@ -137,6 +160,46 @@ fun OportunidadFormScreen(
 
             Spacer(modifier = Modifier.height(8.dp))
 
+            // Boton camara
+            OutlinedButton(
+                onClick = {
+                    val archivo = File(
+                        context.getExternalFilesDir("Pictures"),
+                        "foto_${System.currentTimeMillis()}.jpg"
+                    )
+                    val uri = FileProvider.getUriForFile(
+                        context,
+                        "${context.packageName}.provider",
+                        archivo
+                    )
+                    fotoUri = uri
+                    cameraLauncher.launch(uri)
+                },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Icon(
+                    Icons.Filled.CameraAlt,
+                    contentDescription = null,
+                    modifier = Modifier.size(20.dp)
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text("Tomar foto")
+            } // fin OutlinedButton camara
+
+            // Mostrar foto si existe
+            if (estado.fotoUri.isNotEmpty()) {
+                AsyncImage(
+                    model = estado.fotoUri,
+                    contentDescription = "Foto de la oportunidad",
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(200.dp),
+                    contentScale = ContentScale.Crop
+                )
+            } // fin if foto
+
+            Spacer(modifier = Modifier.height(8.dp))
+
             // Boton guardar
             Button(
                 onClick = {
@@ -157,7 +220,7 @@ fun OportunidadFormScreen(
                 } else {
                     Text(if (esEdicion) "Actualizar" else "Guardar")
                 }
-            } // fin Button
+            } // fin Button guardar
 
         } // fin Column
 

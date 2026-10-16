@@ -59,6 +59,10 @@ dependencies {
     implementation("androidx.room:room-ktx:$roomVersion")
     ksp("androidx.room:room-compiler:$roomVersion")
 
+    // Librería para mostrar imágenes desde URI o URL en Compose
+    // Coil es el estándar para cargar imágenes en Android con Jetpack Compose
+    implementation("io.coil-kt:coil-compose:2.6.0")
+
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
