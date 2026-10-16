@@ -52,6 +52,10 @@ class OportunidadViewModel(app: Application) : AndroidViewModel(app) {
     fun onObservacionesChange(v: String) =
         _estado.update { it.copy(observaciones = v) }
 
+    // AGREGADO: funcion para actualizar la foto
+    fun onFotoUriChange(uri: String) =
+        _estado.update { it.copy(fotoUri = uri) }
+
     // Validacion del formulario
     fun validar(): Boolean {
         val a = _estado.value
@@ -103,7 +107,8 @@ class OportunidadViewModel(app: Application) : AndroidViewModel(app) {
                     nivelPrioridad = a.nivelPrioridad,
                     potencialComercial = a.potencialComercial,
                     estado = a.estado,
-                    observaciones = a.observaciones
+                    observaciones = a.observaciones,
+                    fotoUri = a.fotoUri  // AGREGADO: guarda la foto
                 )
             )
 
@@ -131,7 +136,8 @@ class OportunidadViewModel(app: Application) : AndroidViewModel(app) {
                             nivelPrioridad = entity.nivelPrioridad,
                             potencialComercial = entity.potencialComercial,
                             estado = entity.estado,
-                            observaciones = entity.observaciones
+                            observaciones = entity.observaciones,
+                            fotoUri = entity.fotoUri  // AGREGADO: carga la foto
                         )
                     } // fin update
                 } // fin let
@@ -158,7 +164,8 @@ class OportunidadViewModel(app: Application) : AndroidViewModel(app) {
                     nivelPrioridad = a.nivelPrioridad,
                     potencialComercial = a.potencialComercial,
                     estado = a.estado,
-                    observaciones = a.observaciones
+                    observaciones = a.observaciones,
+                    fotoUri = a.fotoUri  // AGREGADO: guarda la foto al actualizar
                 )
             )
 

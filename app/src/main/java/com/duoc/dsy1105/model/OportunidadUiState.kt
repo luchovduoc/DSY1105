@@ -9,6 +9,8 @@ data class OportunidadUiState(
     val potencialComercial: String = "",
     val estado: String = "Evento identificado",
     val observaciones: String = "",
+
+    val fotoUri: String = "",//agregada para camara
     // Errores
     val nombreError: String? = null,
     val tipoError: String? = null,
@@ -19,4 +21,4 @@ data class OportunidadUiState(
     // Estado del formulario
     val guardando: Boolean = false,
     val guardadoExitosamente: Boolean = false
-)
+) // fin data class OportunidadUiState
