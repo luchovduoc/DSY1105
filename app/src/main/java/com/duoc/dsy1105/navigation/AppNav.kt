@@ -9,6 +9,7 @@ import com.duoc.dsy1105.ui.screens.ContactosScreen
 import com.duoc.dsy1105.ui.screens.EventosScreen
 import com.duoc.dsy1105.ui.screens.HomeScreen
 import com.duoc.dsy1105.ui.screens.LoginScreen
+import com.duoc.dsy1105.ui.screens.OportunidadDetalleScreen
 import com.duoc.dsy1105.ui.screens.OportunidadFormScreen
 import com.duoc.dsy1105.ui.screens.OportunidadesScreen
 import com.duoc.dsy1105.ui.screens.OrganizacionesScreen
@@ -78,6 +79,15 @@ fun AppNav(
                 }
             )
         }
+
+        composable("oportunidad_detalle/{id}") { backStackEntry ->
+            val id = backStackEntry.arguments?.getString("id")?.toLongOrNull() ?: 0L
+            OportunidadDetalleScreen(
+                navController = navController,
+                oportunidadId = id
+            )
+        }
+
     } // fin NavHost
 
 } // fin AppNav

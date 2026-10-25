@@ -71,6 +71,9 @@ dependencies {
     // ML Kit Barcode Scanning
     implementation("com.google.mlkit:barcode-scanning:17.3.0")
 
+    // ZXing para generar QR
+    implementation("com.google.zxing:core:3.5.3")
+
     // LiveData para Compose
     implementation("androidx.compose.runtime:runtime-livedata:1.5.4")
 

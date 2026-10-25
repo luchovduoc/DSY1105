@@ -71,7 +71,7 @@ fun OportunidadesScreen(navController: NavController) {
                     OportunidadCard(
                         oportunidad = oportunidad,
                         onClick = {
-                            navController.navigate("oportunidad_form?id=${oportunidad.id}")
+                            navController.navigate("oportunidad_detalle/${oportunidad.id}")
                         }
                     )
                 } // fin items
