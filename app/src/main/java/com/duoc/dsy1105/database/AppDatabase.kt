@@ -5,10 +5,14 @@ import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 
-@Database(entities = [OportunidadEntity::class], version = 3)
+@Database(
+    entities = [OportunidadEntity::class, UsuarioEntity::class],
+    version = 4
+) // fin @Database
 abstract class AppDatabase : RoomDatabase() {
 
     abstract fun oportunidadDao(): OportunidadDao
+    abstract fun usuarioDao(): UsuarioDao
 
     companion object {
         @Volatile
@@ -23,8 +27,9 @@ abstract class AppDatabase : RoomDatabase() {
                 )
                     .fallbackToDestructiveMigrationOnDowngrade(true)
                     .build().also { INSTANCE = it }
-            }
-        }
-    }
-}
+            } // fin synchronized
+        } // fin getDatabase
 
+    } // fin companion object
+
+} // fin AppDatabase
