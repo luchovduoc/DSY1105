@@ -12,7 +12,9 @@ import com.duoc.dsy1105.ui.screens.LoginScreen
 import com.duoc.dsy1105.ui.screens.OportunidadFormScreen
 import com.duoc.dsy1105.ui.screens.OportunidadesScreen
 import com.duoc.dsy1105.ui.screens.OrganizacionesScreen
+import com.duoc.dsy1105.ui.screens.RegistroScreen
 import com.duoc.dsy1105.viewmodel.LoginViewModel
+
 
 @Composable
 fun AppNav() {
@@ -57,6 +59,13 @@ fun AppNav() {
             OportunidadFormScreen(
                 navController = navController,
                 oportunidadId = id
+            )
+        }
+
+        composable("registro") {
+            RegistroScreen(
+                navController = navController,
+                viewModel = loginViewModel
             )
         }
 
