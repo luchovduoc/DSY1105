@@ -77,6 +77,15 @@ fun LoginScreen(
         ) {
             Text("Ingresar")
         }
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        TextButton(
+            onClick = { navController.navigate("registro") },
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text("¿No tienes cuenta? Crear cuenta")
+        } // fin TextButton
     }
 }
 
