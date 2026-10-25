@@ -12,12 +12,15 @@ import com.duoc.dsy1105.ui.screens.LoginScreen
 import com.duoc.dsy1105.ui.screens.OportunidadFormScreen
 import com.duoc.dsy1105.ui.screens.OportunidadesScreen
 import com.duoc.dsy1105.ui.screens.OrganizacionesScreen
+import com.duoc.dsy1105.ui.screens.QrScannerScreen
 import com.duoc.dsy1105.ui.screens.RegistroScreen
 import com.duoc.dsy1105.viewmodel.LoginViewModel
 
-
 @Composable
-fun AppNav() {
+fun AppNav(
+    hasCameraPermission: Boolean,
+    onRequestPermission: () -> Unit
+) {
     val navController = rememberNavController()
     val loginViewModel: LoginViewModel = viewModel()
 
@@ -31,29 +34,30 @@ fun AppNav() {
                 viewModel = loginViewModel
             )
         }
+        composable("registro") {
+            RegistroScreen(
+                navController = navController,
+                viewModel = loginViewModel
+            )
+        }
         composable("home") {
             HomeScreen(
                 navController = navController,
                 viewModel = loginViewModel
             )
         }
-
         composable("oportunidades") {
             OportunidadesScreen(navController = navController)
         }
-
         composable("eventos") {
             EventosScreen(navController = navController)
         }
-
         composable("organizaciones") {
             OrganizacionesScreen(navController = navController)
         }
-
         composable("contactos") {
             ContactosScreen(navController = navController)
         }
-
         composable("oportunidad_form?id={id}") { backStackEntry ->
             val id = backStackEntry.arguments?.getString("id")?.toLongOrNull()
             OportunidadFormScreen(
@@ -61,14 +65,19 @@ fun AppNav() {
                 oportunidadId = id
             )
         }
-
-        composable("registro") {
-            RegistroScreen(
+        composable("qr_scanner?destino={destino}") { backStackEntry ->
+            val destino = backStackEntry.arguments?.getString("destino") ?: ""
+            QrScannerScreen(
                 navController = navController,
-                viewModel = loginViewModel
+                hasCameraPermission = hasCameraPermission,
+                onRequestPermission = onRequestPermission,
+                onQrScanned = { contenido ->
+                    navController.previousBackStackEntry
+                        ?.savedStateHandle
+                        ?.set("qr_result_$destino", contenido)
+                }
             )
         }
+    } // fin NavHost
 
-
-    }
-}
+} // fin AppNav

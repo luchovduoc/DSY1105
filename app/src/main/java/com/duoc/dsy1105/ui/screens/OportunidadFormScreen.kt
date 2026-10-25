@@ -9,6 +9,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.CameraAlt
+import androidx.compose.material.icons.filled.QrCodeScanner
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -37,6 +38,22 @@ fun OportunidadFormScreen(
 
     // URI temporal para la foto
     var fotoUri by remember { mutableStateOf<Uri?>(null) }
+
+    // Recibir resultado del QR
+    val qrResult = navController.currentBackStackEntry
+        ?.savedStateHandle
+        ?.getStateFlow<String?>("qr_result_fuente", null)
+        ?.collectAsState()
+
+    // Aplicar resultado QR al campo fuente
+    LaunchedEffect(qrResult?.value) {
+        qrResult?.value?.let { contenido ->
+            viewModel.onFuenteChange(contenido)
+            navController.currentBackStackEntry
+                ?.savedStateHandle
+                ?.remove<String>("qr_result_fuente")
+        }
+    } // fin LaunchedEffect QR
 
     // Launcher para abrir la camara
     val cameraLauncher = rememberLauncherForActivityResult(
@@ -128,6 +145,22 @@ fun OportunidadFormScreen(
                 supportingText = { Text(estado.fuenteError ?: "") },
                 modifier = Modifier.fillMaxWidth()
             )
+
+            // Boton escanear QR para fuente
+            OutlinedButton(
+                onClick = {
+                    navController.navigate("qr_scanner?destino=fuente")
+                },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Icon(
+                    Icons.Filled.QrCodeScanner,
+                    contentDescription = null,
+                    modifier = Modifier.size(20.dp)
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text("Escanear QR como fuente")
+            } // fin OutlinedButton QR
 
             // Prioridad
             OutlinedTextField(
