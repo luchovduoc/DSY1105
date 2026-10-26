@@ -1,8 +1,16 @@
 package com.duoc.dsy1105.ui.screens
 
+import android.Manifest
+import android.content.pm.PackageManager
 import android.net.Uri
+import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -18,6 +26,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.core.content.FileProvider
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
@@ -89,6 +98,23 @@ fun OportunidadFormScreen(
             viewModel.onFotoUriChange(fotoUri.toString())
         }
     } // fin cameraLauncher
+
+    // Launcher para solicitar permiso de cámara
+    val permisoCamaraLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { concedido ->
+        if (concedido) {
+            fotoUri?.let { uri ->
+                cameraLauncher.launch(uri)
+            }
+        } else {
+            Toast.makeText(
+                context,
+                "Se necesita permiso de cámara para tomar la foto",
+                Toast.LENGTH_SHORT
+            ).show()
+        }
+    }// fin Launcher para solicitar permiso de cámara
 
     // Si es edicion carga los datos
     LaunchedEffect(oportunidadId) {
@@ -340,7 +366,17 @@ fun OportunidadFormScreen(
                         archivo
                     )
                     fotoUri = uri
-                    cameraLauncher.launch(uri)
+
+                    if (
+                        ContextCompat.checkSelfPermission(
+                            context,
+                            Manifest.permission.CAMERA
+                        ) == PackageManager.PERMISSION_GRANTED
+                    ) {
+                        cameraLauncher.launch(uri)
+                    } else {
+                        permisoCamaraLauncher.launch(Manifest.permission.CAMERA)
+                    }
                 },
                 modifier = Modifier.fillMaxWidth()
             ) {
@@ -353,8 +389,12 @@ fun OportunidadFormScreen(
                 Text("Tomar foto")
             } // fin OutlinedButton camara
 
-            // Mostrar foto si existe
-            if (estado.fotoUri.isNotEmpty()) {
+            // Mostrar foto con animación si existe
+            AnimatedVisibility(
+                visible = estado.fotoUri.isNotEmpty(),
+                enter = fadeIn() + expandVertically(),
+                exit = fadeOut() + shrinkVertically()
+            ) {
                 AsyncImage(
                     model = estado.fotoUri,
                     contentDescription = "Foto de la oportunidad",
@@ -363,7 +403,7 @@ fun OportunidadFormScreen(
                         .height(200.dp),
                     contentScale = ContentScale.Crop
                 )
-            } // fin if foto
+            }// fin Mostrar foto con animación si existe
 
             Spacer(modifier = Modifier.height(8.dp))
 

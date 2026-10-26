@@ -1,6 +1,9 @@
 package com.duoc.dsy1105.ui.screens
 
+import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -23,6 +26,13 @@ fun OportunidadesScreen(navController: NavController) {
 
     val viewModel: OportunidadViewModel = viewModel()
     val oportunidades by viewModel.oportunidades.collectAsState()
+    val interactionSource = remember { MutableInteractionSource() }
+    val presionado by interactionSource.collectIsPressedAsState()
+
+    val elevacionFab by animateDpAsState(
+        targetValue = if (presionado) 2.dp else 8.dp,
+        label = "elevacionFab"
+    )
 
     Scaffold(
         topBar = {
@@ -42,7 +52,11 @@ fun OportunidadesScreen(navController: NavController) {
             FloatingActionButton(onClick = {
                 navController.navigate("oportunidad_form")
             }) {
-                Icon(Icons.Filled.Add, contentDescription = "Agregar")
+                Icon(
+                    imageVector = Icons.Filled.Add,
+                    contentDescription = "Agregar"
+                )
+
             }
         } // fin floatingActionButton
     ) { innerPadding ->
