@@ -7,7 +7,6 @@ import com.duoc.dsy1105.model.Usuario
 import com.duoc.dsy1105.repository.AuthRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 class LoginViewModel(app: Application) : AndroidViewModel(app) {
