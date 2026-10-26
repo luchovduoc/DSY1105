@@ -31,6 +31,7 @@ import androidx.core.location.LocationManagerCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.compose.material.icons.filled.MyLocation
+import androidx.compose.material.icons.filled.ErrorOutline
 import coil.compose.AsyncImage
 import com.duoc.dsy1105.viewmodel.OportunidadViewModel
 import java.io.File
@@ -367,7 +368,8 @@ fun OportunidadFormScreen(
                 },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(16.dp),
+                    .padding(16.dp)
+                    .navigationBarsPadding(),
                 enabled = !estado.guardando
             ) {
                 if (estado.guardando) {
@@ -408,9 +410,19 @@ fun OportunidadFormScreen(
                 onValueChange = { viewModel.onTipoChange(it) },
                 label = { Text("Tipo de oportunidad") },
                 isError = estado.tipoError != null,
+                trailingIcon = {
+                    if (estado.nombreError != null) {
+                        Icon(
+                            Icons.Filled.ErrorOutline,
+                            contentDescription = "Error"
+                        )
+                    }
+                },
                 supportingText = { Text(estado.tipoError ?: "") },
                 modifier = Modifier.fillMaxWidth()
+
             )
+
 
             // Descripcion
             OutlinedTextField(
@@ -418,6 +430,15 @@ fun OportunidadFormScreen(
                 onValueChange = { viewModel.onDescripcionChange(it) },
                 label = { Text("Descripción") },
                 isError = estado.descripcionError != null,
+
+                trailingIcon = {
+                    if (estado.descripcionError != null) {
+                        Icon(
+                            Icons.Filled.ErrorOutline,
+                            contentDescription = "Error"
+                        )
+                    }
+                },
                 supportingText = { Text(estado.descripcionError ?: "") },
                 modifier = Modifier.fillMaxWidth(),
                 minLines = 3
@@ -429,6 +450,14 @@ fun OportunidadFormScreen(
                 onValueChange = { viewModel.onFuenteChange(it) },
                 label = { Text("Fuente de información") },
                 isError = estado.fuenteError != null,
+                trailingIcon = {
+                    if (estado.nombreError != null) {
+                        Icon(
+                            Icons.Filled.ErrorOutline,
+                            contentDescription = "Error"
+                        )
+                    }
+                },
                 supportingText = { Text(estado.fuenteError ?: "") },
                 modifier = Modifier.fillMaxWidth()
             )

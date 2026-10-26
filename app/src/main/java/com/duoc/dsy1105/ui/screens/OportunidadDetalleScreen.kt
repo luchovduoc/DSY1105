@@ -64,7 +64,8 @@ fun OportunidadDetalleScreen(
                     .fillMaxSize()
                     .padding(innerPadding)
                     .padding(16.dp)
-                    .verticalScroll(rememberScrollState()),
+                    .verticalScroll(rememberScrollState())
+                    .navigationBarsPadding(),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
 
@@ -82,6 +83,27 @@ fun OportunidadDetalleScreen(
 
                 if (oportunidad.observaciones.isNotEmpty()) {
                     InfoRow("Observaciones", oportunidad.observaciones)
+                }
+
+// Ubicacion registrada
+                if (oportunidad.latitud != null && oportunidad.longitud != null) {
+
+                    Spacer(modifier = Modifier.height(4.dp))
+
+                    Text(
+                        text = "Ubicación registrada",
+                        style = MaterialTheme.typography.titleMedium
+                    )
+
+                    InfoRow(
+                        "Latitud",
+                        oportunidad.latitud.toString()
+                    )
+
+                    InfoRow(
+                        "Longitud",
+                        oportunidad.longitud.toString()
+                    )
                 }
 
                 HorizontalDivider()
