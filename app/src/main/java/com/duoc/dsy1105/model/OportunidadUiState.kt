@@ -11,6 +11,8 @@ data class OportunidadUiState(
     val observaciones: String = "",
 
     val fotoUri: String = "",//agregada para camara
+    val latitud: Double? = null,
+    val longitud: Double? = null,
     // Errores
     val nombreError: String? = null,
     val tipoError: String? = null,

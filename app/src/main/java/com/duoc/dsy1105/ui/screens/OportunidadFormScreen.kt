@@ -27,11 +27,17 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.core.content.FileProvider
 import androidx.core.content.ContextCompat
+import androidx.core.location.LocationManagerCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import androidx.compose.material.icons.filled.MyLocation
 import coil.compose.AsyncImage
 import com.duoc.dsy1105.viewmodel.OportunidadViewModel
 import java.io.File
+import android.content.Context
+import android.location.LocationManager
+import android.location.Location
+import android.os.CancellationSignal
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -115,6 +121,211 @@ fun OportunidadFormScreen(
             ).show()
         }
     }// fin Launcher para solicitar permiso de cámara
+
+    // Obtener ubicacion actual del dispositivo
+    fun obtenerUbicacionActual() {
+
+        val locationManager =
+            context.getSystemService(Context.LOCATION_SERVICE) as LocationManager
+
+        val tieneFine =
+            ContextCompat.checkSelfPermission(
+                context,
+                Manifest.permission.ACCESS_FINE_LOCATION
+            ) == PackageManager.PERMISSION_GRANTED
+
+        val tieneCoarse =
+            ContextCompat.checkSelfPermission(
+                context,
+                Manifest.permission.ACCESS_COARSE_LOCATION
+            ) == PackageManager.PERMISSION_GRANTED
+
+        if (!tieneFine && !tieneCoarse) {
+            Toast.makeText(
+                context,
+                "No se cuenta con permiso de ubicación",
+                Toast.LENGTH_SHORT
+            ).show()
+            return
+        }
+
+        val proveedores = listOf(
+            LocationManager.NETWORK_PROVIDER,
+            LocationManager.GPS_PROVIDER
+        ).filter { proveedor ->
+            try {
+                locationManager.isProviderEnabled(proveedor)
+            } catch (e: Exception) {
+                false
+            }
+        }
+
+        if (proveedores.isEmpty()) {
+            Toast.makeText(
+                context,
+                "Activa la ubicación del dispositivo",
+                Toast.LENGTH_SHORT
+            ).show()
+            return
+        }
+
+        fun registrarUbicacion(ubicacion: Location) {
+
+            viewModel.onUbicacionChange(
+                ubicacion.latitude,
+                ubicacion.longitude
+            )
+
+            Toast.makeText(
+                context,
+                "Ubicación registrada correctamente",
+                Toast.LENGTH_SHORT
+            ).show()
+        }
+
+        fun intentarProveedor(indice: Int) {
+
+            if (indice >= proveedores.size) {
+
+                val ultimaUbicacion =
+                    proveedores.mapNotNull { proveedor ->
+                        try {
+                            locationManager.getLastKnownLocation(proveedor)
+                        } catch (e: SecurityException) {
+                            null
+                        }
+                    }.maxByOrNull { it.time }
+
+                if (ultimaUbicacion != null) {
+
+                    registrarUbicacion(ultimaUbicacion)
+
+                } else {
+
+                    Toast.makeText(
+                        context,
+                        "No fue posible obtener la ubicación. Intenta nuevamente en unos segundos.",
+                        Toast.LENGTH_LONG
+                    ).show()
+                }
+
+                return
+            }
+
+            try {
+
+                LocationManagerCompat.getCurrentLocation(
+                    locationManager,
+                    proveedores[indice],
+                    null as CancellationSignal?,
+                    ContextCompat.getMainExecutor(context)
+                ) { ubicacion: Location? ->
+
+                    if (ubicacion != null) {
+
+                        registrarUbicacion(ubicacion)
+
+                    } else {
+
+                        intentarProveedor(indice + 1)
+                    }
+                }
+
+            } catch (e: SecurityException) {
+
+                Toast.makeText(
+                    context,
+                    "No se cuenta con permiso de ubicación",
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
+        }
+
+        intentarProveedor(0)
+
+
+        val proveedor = when {
+            locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER) ->
+                LocationManager.GPS_PROVIDER
+
+            locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER) ->
+                LocationManager.NETWORK_PROVIDER
+
+            else -> {
+                Toast.makeText(
+                    context,
+                    "Activa la ubicación del dispositivo",
+                    Toast.LENGTH_SHORT
+                ).show()
+                return
+            }
+        }
+
+        try {
+            LocationManagerCompat.getCurrentLocation(
+                locationManager,
+                proveedor,
+                null as CancellationSignal?,
+                ContextCompat.getMainExecutor(context)
+            ) { ubicacion: Location? ->
+
+                if (ubicacion != null) {
+
+                    viewModel.onUbicacionChange(
+                        ubicacion.latitude,
+                        ubicacion.longitude
+                    )
+
+                    Toast.makeText(
+                        context,
+                        "Ubicación registrada correctamente",
+                        Toast.LENGTH_SHORT
+                    ).show()
+
+                } else {
+
+                    Toast.makeText(
+                        context,
+                        "No fue posible obtener la ubicación",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
+            }
+
+        } catch (e: SecurityException) {
+
+            Toast.makeText(
+                context,
+                "No se cuenta con permiso de ubicación",
+                Toast.LENGTH_SHORT
+            ).show()
+        }
+    }
+
+    // Launcher para solicitar permisos de ubicacion
+    val permisoUbicacionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestMultiplePermissions()
+    ) { permisos ->
+
+        val concedido =
+            permisos[Manifest.permission.ACCESS_FINE_LOCATION] == true ||
+                    permisos[Manifest.permission.ACCESS_COARSE_LOCATION] == true
+
+        if (concedido) {
+
+            obtenerUbicacionActual()
+
+        } else {
+
+            Toast.makeText(
+                context,
+                "Se necesita permiso de ubicación para registrar la posición",
+                Toast.LENGTH_SHORT
+            ).show()
+        }
+    }
+
+
 
     // Si es edicion carga los datos
     LaunchedEffect(oportunidadId) {
@@ -376,6 +587,71 @@ fun OportunidadFormScreen(
             )
 
             Spacer(modifier = Modifier.height(8.dp))
+
+            // Boton ubicacion
+            OutlinedButton(
+                onClick = {
+
+                    val tieneFine =
+                        ContextCompat.checkSelfPermission(
+                            context,
+                            Manifest.permission.ACCESS_FINE_LOCATION
+                        ) == PackageManager.PERMISSION_GRANTED
+
+                    val tieneCoarse =
+                        ContextCompat.checkSelfPermission(
+                            context,
+                            Manifest.permission.ACCESS_COARSE_LOCATION
+                        ) == PackageManager.PERMISSION_GRANTED
+
+                    if (tieneFine || tieneCoarse) {
+
+                        obtenerUbicacionActual()
+
+                    } else {
+
+                        permisoUbicacionLauncher.launch(
+                            arrayOf(
+                                Manifest.permission.ACCESS_FINE_LOCATION,
+                                Manifest.permission.ACCESS_COARSE_LOCATION
+                            )
+                        )
+                    }
+                },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+
+                Icon(
+                    Icons.Filled.MyLocation,
+                    contentDescription = null,
+                    modifier = Modifier.size(20.dp)
+                )
+
+                Spacer(modifier = Modifier.width(8.dp))
+
+                Text(
+                    if (estado.latitud != null && estado.longitud != null)
+                        "Actualizar ubicación"
+                    else
+                        "Obtener ubicación"
+                )
+            }
+
+            if (estado.latitud != null && estado.longitud != null) {
+
+                Text(
+                    text = "Ubicación registrada",
+                    style = MaterialTheme.typography.labelLarge
+                )
+
+                Text(
+                    text = "Latitud: ${estado.latitud}"
+                )
+
+                Text(
+                    text = "Longitud: ${estado.longitud}"
+                )
+            }
 
             // Boton camara
             OutlinedButton(
