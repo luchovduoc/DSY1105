@@ -9,6 +9,10 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.duoc.dsy1105.viewmodel.LoginViewModel
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ErrorOutline
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 
 @Composable
 fun LoginScreen(
@@ -33,6 +37,8 @@ fun LoginScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
+            .verticalScroll(rememberScrollState())
+            .imePadding()
             .padding(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
@@ -54,6 +60,14 @@ fun LoginScreen(
                     Text(it)
                 }
             },
+            trailingIcon = {
+                if (emailError != null) {
+                    Icon(
+                        Icons.Filled.ErrorOutline,
+                        contentDescription = "Error"
+                    )
+                }
+            },
             modifier = Modifier.fillMaxWidth()
         )
 
@@ -68,6 +82,14 @@ fun LoginScreen(
             supportingText = {
                 passwordError?.let {
                     Text(it)
+                }
+            },
+            trailingIcon = {
+                if (passwordError != null) {
+                    Icon(
+                        Icons.Filled.ErrorOutline,
+                        contentDescription = "Error"
+                    )
                 }
             },
             modifier = Modifier.fillMaxWidth()
