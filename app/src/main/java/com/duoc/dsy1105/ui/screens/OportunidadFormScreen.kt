@@ -182,6 +182,14 @@ fun OportunidadFormScreen(
                 modifier = Modifier.fillMaxWidth()
             )
 
+            // Estado de gestión
+            OutlinedTextField(
+                value = estado.estado,
+                onValueChange = { viewModel.onEstadoChange(it) },
+                label = { Text("Estado de gestión") },
+                modifier = Modifier.fillMaxWidth()
+            )
+
             // Observaciones
             OutlinedTextField(
                 value = estado.observaciones,

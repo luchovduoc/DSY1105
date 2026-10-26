@@ -46,6 +46,9 @@ class OportunidadViewModel(app: Application) : AndroidViewModel(app) {
     fun onPrioridadChange(v: String) =
         _estado.update { it.copy(nivelPrioridad = v, prioridadError = null) }
 
+    fun onEstadoChange(v: String) =
+        _estado.update { it.copy(estado = v) }
+
     fun onPotencialChange(v: String) =
         _estado.update { it.copy(potencialComercial = v, potencialError = null) }
 
