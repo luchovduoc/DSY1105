@@ -52,7 +52,10 @@ class OrganizacionViewModel(app: Application) : AndroidViewModel(app) {
     fun onTipoChange(v: String) = _tipoOrganizacion.update { v }
     fun onRubroChange(v: String) = _rubro.update { v }
     fun onComunaChange(v: String) = _comuna.update { v }
-    fun onRegionChange(v: String) = _region.update { v }
+    fun onRegionChange(v: String) {
+        _region.value = v
+        _comuna.value = ""
+    }
     fun onObservacionesChange(v: String) = _observaciones.update { v }
 
     // Guardar en Room
