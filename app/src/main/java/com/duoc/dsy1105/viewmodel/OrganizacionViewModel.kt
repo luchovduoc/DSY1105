@@ -47,19 +47,84 @@ class OrganizacionViewModel(app: Application) : AndroidViewModel(app) {
     private val _guardadoExitosamente = MutableStateFlow(false)
     val guardadoExitosamente: StateFlow<Boolean> = _guardadoExitosamente
 
+    private val _nombreError = MutableStateFlow<String?>(null)
+    val nombreError: StateFlow<String?> = _nombreError
+
+    private val _tipoError = MutableStateFlow<String?>(null)
+    val tipoError: StateFlow<String?> = _tipoError
+
+    private val _rubroError = MutableStateFlow<String?>(null)
+    val rubroError: StateFlow<String?> = _rubroError
+
+    private val _regionError = MutableStateFlow<String?>(null)
+    val regionError: StateFlow<String?> = _regionError
+
+    private val _comunaError = MutableStateFlow<String?>(null)
+    val comunaError: StateFlow<String?> = _comunaError
+
     // Funciones para actualizar campos
-    fun onNombreChange(v: String) = _nombre.update { v }
-    fun onTipoChange(v: String) = _tipoOrganizacion.update { v }
-    fun onRubroChange(v: String) = _rubro.update { v }
-    fun onComunaChange(v: String) = _comuna.update { v }
+    fun onNombreChange(v: String) {
+        _nombre.value = v
+        _nombreError.value = null
+    }
+
+    fun onTipoChange(v: String) {
+        _tipoOrganizacion.value = v
+        _tipoError.value = null
+    }
+
+    fun onRubroChange(v: String) {
+        _rubro.value = v
+        _rubroError.value = null
+    }
+
+    fun onComunaChange(v: String) {
+        _comuna.value = v
+        _comunaError.value = null
+    }
     fun onRegionChange(v: String) {
         _region.value = v
         _comuna.value = ""
+        _regionError.value = null
+        _comunaError.value = null
     }
     fun onObservacionesChange(v: String) = _observaciones.update { v }
 
+    fun validar(): Boolean {
+
+        var valido = true
+
+        if (_nombre.value.isBlank()) {
+            _nombreError.value = "El nombre es obligatorio"
+            valido = false
+        }
+
+        if (_tipoOrganizacion.value.isBlank()) {
+            _tipoError.value = "El tipo de organización es obligatorio"
+            valido = false
+        }
+
+        if (_rubro.value.isBlank()) {
+            _rubroError.value = "El rubro es obligatorio"
+            valido = false
+        }
+
+        if (_region.value.isBlank()) {
+            _regionError.value = "La región es obligatoria"
+            valido = false
+        }
+
+        if (_comuna.value.isBlank()) {
+            _comunaError.value = "La comuna es obligatoria"
+            valido = false
+        }
+
+        return valido
+    }
+
     // Guardar en Room
     fun guardar() {
+        if (!validar()) return
         viewModelScope.launch {
             repository.insertar(
                 OrganizacionEntity(
@@ -77,10 +142,11 @@ class OrganizacionViewModel(app: Application) : AndroidViewModel(app) {
 
     // Limpiar formulario
     fun limpiarFormulario() {
-        _nombre.value = ""
-        _tipoOrganizacion.value = ""
-        _rubro.value = ""
-        _comuna.value = ""
+        _nombreError.value = null
+        _tipoError.value = null
+        _rubroError.value = null
+        _regionError.value = null
+        _comunaError.value = null
         _region.value = ""
         _observaciones.value = ""
         _guardadoExitosamente.value = false

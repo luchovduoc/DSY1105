@@ -11,6 +11,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import androidx.compose.material.icons.filled.ErrorOutline
 import com.duoc.dsy1105.viewmodel.OrganizacionViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -27,6 +28,11 @@ fun OrganizacionFormScreen(navController: NavController) {
     val guardadoExitosamente by viewModel.guardadoExitosamente.collectAsState()
     var regionExpandida by remember { mutableStateOf(false) }
     var comunaExpandida by remember { mutableStateOf(false) }
+    val nombreError by viewModel.nombreError.collectAsState()
+    val tipoError by viewModel.tipoError.collectAsState()
+    val rubroError by viewModel.rubroError.collectAsState()
+    val regionError by viewModel.regionError.collectAsState()
+    val comunaError by viewModel.comunaError.collectAsState()
 
     val regiones = listOf(
         "Arica y Parinacota",
@@ -139,6 +145,20 @@ fun OrganizacionFormScreen(navController: NavController) {
                 value = nombre,
                 onValueChange = { viewModel.onNombreChange(it) },
                 label = { Text("Nombre") },
+                isError = nombreError != null,
+                supportingText = {
+                    nombreError?.let {
+                        Text(it)
+                    }
+                },
+                trailingIcon = {
+                    if (nombreError != null) {
+                        Icon(
+                            Icons.Filled.ErrorOutline,
+                            contentDescription = "Error"
+                        )
+                    }
+                },
                 modifier = Modifier.fillMaxWidth()
             )
 
@@ -146,6 +166,20 @@ fun OrganizacionFormScreen(navController: NavController) {
                 value = tipoOrganizacion,
                 onValueChange = { viewModel.onTipoChange(it) },
                 label = { Text("Tipo (Empresa, Municipalidad, etc.)") },
+                isError = tipoError != null,
+                supportingText = {
+                    tipoError?.let {
+                        Text(it)
+                    }
+                },
+                trailingIcon = {
+                    if (tipoError != null) {
+                        Icon(
+                            Icons.Filled.ErrorOutline,
+                            contentDescription = "Error"
+                        )
+                    }
+                },
                 modifier = Modifier.fillMaxWidth()
             )
 
@@ -153,6 +187,20 @@ fun OrganizacionFormScreen(navController: NavController) {
                 value = rubro,
                 onValueChange = { viewModel.onRubroChange(it) },
                 label = { Text("Rubro") },
+                isError = rubroError != null,
+                supportingText = {
+                    rubroError?.let {
+                        Text(it)
+                    }
+                },
+                trailingIcon = {
+                    if (rubroError != null) {
+                        Icon(
+                            Icons.Filled.ErrorOutline,
+                            contentDescription = "Error"
+                        )
+                    }
+                },
                 modifier = Modifier.fillMaxWidth()
             )
 
@@ -165,6 +213,12 @@ fun OrganizacionFormScreen(navController: NavController) {
                     onValueChange = {},
                     readOnly = true,
                     label = { Text("Región") },
+                    isError = regionError != null,
+                    supportingText = {
+                        regionError?.let {
+                            Text(it)
+                        }
+                    },
                     trailingIcon = {
                         ExposedDropdownMenuDefaults.TrailingIcon(
                             expanded = regionExpandida
@@ -174,6 +228,7 @@ fun OrganizacionFormScreen(navController: NavController) {
                         .menuAnchor()
                         .fillMaxWidth()
                 )
+
 
                 ExposedDropdownMenu(
                     expanded = regionExpandida,
@@ -234,6 +289,20 @@ fun OrganizacionFormScreen(navController: NavController) {
                     value = comuna,
                     onValueChange = { viewModel.onComunaChange(it) },
                     label = { Text("Comuna") },
+                    isError = comunaError != null,
+                    supportingText = {
+                        comunaError?.let {
+                            Text(it)
+                        }
+                    },
+                    trailingIcon = {
+                        if (comunaError != null) {
+                            Icon(
+                                Icons.Filled.ErrorOutline,
+                                contentDescription = "Error"
+                            )
+                        }
+                    },
                     modifier = Modifier.fillMaxWidth()
                 )
             }
