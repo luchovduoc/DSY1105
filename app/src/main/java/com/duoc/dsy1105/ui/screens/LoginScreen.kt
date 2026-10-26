@@ -25,17 +25,23 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.duoc.dsy1105.viewmodel.LoginViewModel
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ErrorOutline
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 
 @Composable
 fun LoginScreen(
     navController: NavController,
     viewModel: LoginViewModel
 ) {
-    var email by remember { mutableStateOf("") }
-    var password by remember { mutableStateOf("") }
 
     val usuario by viewModel.usuario.collectAsState()
     val error by viewModel.error.collectAsState()
+    val email by viewModel.email.collectAsState()
+    val password by viewModel.password.collectAsState()
+    val emailError by viewModel.emailError.collectAsState()
+    val passwordError by viewModel.passwordError.collectAsState()
 
     // Si el login fue exitoso navega al home
     LaunchedEffect(usuario) {
@@ -47,6 +53,8 @@ fun LoginScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
+            .verticalScroll(rememberScrollState())
+            .imePadding()
             .padding(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
@@ -60,8 +68,22 @@ fun LoginScreen(
 
         OutlinedTextField(
             value = email,
-            onValueChange = { email = it },
+            onValueChange = { viewModel.onEmailChange(it) },
             label = { Text("Email") },
+            isError = emailError != null,
+            supportingText = {
+                emailError?.let {
+                    Text(it)
+                }
+            },
+            trailingIcon = {
+                if (emailError != null) {
+                    Icon(
+                        Icons.Filled.ErrorOutline,
+                        contentDescription = "Error"
+                    )
+                }
+            },
             modifier = Modifier.fillMaxWidth()
         )
 
@@ -69,9 +91,23 @@ fun LoginScreen(
 
         OutlinedTextField(
             value = password,
-            onValueChange = { password = it },
+            onValueChange = { viewModel.onPasswordChange(it) },
             label = { Text("Contraseña") },
             visualTransformation = PasswordVisualTransformation(),
+            isError = passwordError != null,
+            supportingText = {
+                passwordError?.let {
+                    Text(it)
+                }
+            },
+            trailingIcon = {
+                if (passwordError != null) {
+                    Icon(
+                        Icons.Filled.ErrorOutline,
+                        contentDescription = "Error"
+                    )
+                }
+            },
             modifier = Modifier.fillMaxWidth()
         )
 
@@ -88,7 +124,7 @@ fun LoginScreen(
         Spacer(modifier = Modifier.height(16.dp))
 
         Button(
-            onClick = { viewModel.login(email, password) },
+            onClick = { viewModel.login() },
             modifier = Modifier.fillMaxWidth()
         ) {
             Text("Ingresar")

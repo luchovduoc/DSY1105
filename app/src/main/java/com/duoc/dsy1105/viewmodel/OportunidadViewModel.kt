@@ -46,6 +46,9 @@ class OportunidadViewModel(app: Application) : AndroidViewModel(app) {
     fun onPrioridadChange(v: String) =
         _estado.update { it.copy(nivelPrioridad = v, prioridadError = null) }
 
+    fun onEstadoChange(v: String) =
+        _estado.update { it.copy(estado = v) }
+
     fun onPotencialChange(v: String) =
         _estado.update { it.copy(potencialComercial = v, potencialError = null) }
 
@@ -55,6 +58,14 @@ class OportunidadViewModel(app: Application) : AndroidViewModel(app) {
     // AGREGADO: funcion para actualizar la foto
     fun onFotoUriChange(uri: String) =
         _estado.update { it.copy(fotoUri = uri) }
+
+    fun onUbicacionChange(latitud: Double, longitud: Double) =
+        _estado.update {
+            it.copy(
+                latitud = latitud,
+                longitud = longitud
+            )
+        }
 
     // Validacion del formulario
     fun validar(): Boolean {
@@ -108,7 +119,9 @@ class OportunidadViewModel(app: Application) : AndroidViewModel(app) {
                     potencialComercial = a.potencialComercial,
                     estado = a.estado,
                     observaciones = a.observaciones,
-                    fotoUri = a.fotoUri  // AGREGADO: guarda la foto
+                    fotoUri = a.fotoUri,
+                    latitud = a.latitud,
+                    longitud = a.longitud
                 )
             )
 
@@ -137,7 +150,9 @@ class OportunidadViewModel(app: Application) : AndroidViewModel(app) {
                             potencialComercial = entity.potencialComercial,
                             estado = entity.estado,
                             observaciones = entity.observaciones,
-                            fotoUri = entity.fotoUri  // AGREGADO: carga la foto
+                            fotoUri = entity.fotoUri,
+                            latitud = entity.latitud,
+                            longitud = entity.longitud
                         )
                     } // fin update
                 } // fin let
@@ -165,7 +180,10 @@ class OportunidadViewModel(app: Application) : AndroidViewModel(app) {
                     potencialComercial = a.potencialComercial,
                     estado = a.estado,
                     observaciones = a.observaciones,
-                    fotoUri = a.fotoUri  // AGREGADO: guarda la foto al actualizar
+                    fotoUri = a.fotoUri,
+                    latitud = a.latitud,
+                    longitud = a.longitud // guarda ubicacion al actualizar
+
                 )
             )
 

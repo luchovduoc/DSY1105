@@ -28,6 +28,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import androidx.compose.material.icons.filled.ErrorOutline
 import com.duoc.dsy1105.viewmodel.OrganizacionViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -42,6 +43,87 @@ fun OrganizacionFormScreen(navController: NavController) {
     val region by viewModel.region.collectAsState()
     val observaciones by viewModel.observaciones.collectAsState()
     val guardadoExitosamente by viewModel.guardadoExitosamente.collectAsState()
+    var regionExpandida by remember { mutableStateOf(false) }
+    var comunaExpandida by remember { mutableStateOf(false) }
+    val nombreError by viewModel.nombreError.collectAsState()
+    val tipoError by viewModel.tipoError.collectAsState()
+    val rubroError by viewModel.rubroError.collectAsState()
+    val regionError by viewModel.regionError.collectAsState()
+    val comunaError by viewModel.comunaError.collectAsState()
+
+    val regiones = listOf(
+        "Arica y Parinacota",
+        "Tarapacá",
+        "Antofagasta",
+        "Atacama",
+        "Coquimbo",
+        "Valparaíso",
+        "Región Metropolitana de Santiago",
+        "Libertador General Bernardo O'Higgins",
+        "Maule",
+        "Ñuble",
+        "Biobío",
+        "La Araucanía",
+        "Los Ríos",
+        "Los Lagos",
+        "Aysén del General Carlos Ibáñez del Campo",
+        "Magallanes y de la Antártica Chilena"
+    )
+
+    val comunasMetropolitana = listOf(
+        "Alhué",
+        "Buin",
+        "Calera de Tango",
+        "Cerrillos",
+        "Cerro Navia",
+        "Colina",
+        "Conchalí",
+        "Curacaví",
+        "El Bosque",
+        "El Monte",
+        "Estación Central",
+        "Huechuraba",
+        "Independencia",
+        "Isla de Maipo",
+        "La Cisterna",
+        "La Florida",
+        "La Granja",
+        "La Pintana",
+        "La Reina",
+        "Lampa",
+        "Las Condes",
+        "Lo Barnechea",
+        "Lo Espejo",
+        "Lo Prado",
+        "Macul",
+        "Maipú",
+        "María Pinto",
+        "Melipilla",
+        "Ñuñoa",
+        "Padre Hurtado",
+        "Paine",
+        "Pedro Aguirre Cerda",
+        "Peñaflor",
+        "Peñalolén",
+        "Pirque",
+        "Providencia",
+        "Pudahuel",
+        "Puente Alto",
+        "Quilicura",
+        "Quinta Normal",
+        "Recoleta",
+        "Renca",
+        "San Bernardo",
+        "San Joaquín",
+        "San José de Maipo",
+        "San Miguel",
+        "San Pedro",
+        "San Ramón",
+        "Santiago",
+        "Talagante",
+        "Tiltil",
+        "Vitacura"
+    )
 
     LaunchedEffect(guardadoExitosamente) {
         if (guardadoExitosamente) {
@@ -80,6 +162,20 @@ fun OrganizacionFormScreen(navController: NavController) {
                 value = nombre,
                 onValueChange = { viewModel.onNombreChange(it) },
                 label = { Text("Nombre") },
+                isError = nombreError != null,
+                supportingText = {
+                    nombreError?.let {
+                        Text(it)
+                    }
+                },
+                trailingIcon = {
+                    if (nombreError != null) {
+                        Icon(
+                            Icons.Filled.ErrorOutline,
+                            contentDescription = "Error"
+                        )
+                    }
+                },
                 modifier = Modifier.fillMaxWidth()
             )
 
@@ -87,6 +183,20 @@ fun OrganizacionFormScreen(navController: NavController) {
                 value = tipoOrganizacion,
                 onValueChange = { viewModel.onTipoChange(it) },
                 label = { Text("Tipo (Empresa, Municipalidad, etc.)") },
+                isError = tipoError != null,
+                supportingText = {
+                    tipoError?.let {
+                        Text(it)
+                    }
+                },
+                trailingIcon = {
+                    if (tipoError != null) {
+                        Icon(
+                            Icons.Filled.ErrorOutline,
+                            contentDescription = "Error"
+                        )
+                    }
+                },
                 modifier = Modifier.fillMaxWidth()
             )
 
@@ -94,22 +204,125 @@ fun OrganizacionFormScreen(navController: NavController) {
                 value = rubro,
                 onValueChange = { viewModel.onRubroChange(it) },
                 label = { Text("Rubro") },
+                isError = rubroError != null,
+                supportingText = {
+                    rubroError?.let {
+                        Text(it)
+                    }
+                },
+                trailingIcon = {
+                    if (rubroError != null) {
+                        Icon(
+                            Icons.Filled.ErrorOutline,
+                            contentDescription = "Error"
+                        )
+                    }
+                },
                 modifier = Modifier.fillMaxWidth()
             )
 
-            OutlinedTextField(
-                value = comuna,
-                onValueChange = { viewModel.onComunaChange(it) },
-                label = { Text("Comuna") },
-                modifier = Modifier.fillMaxWidth()
-            )
+            ExposedDropdownMenuBox(
+                expanded = regionExpandida,
+                onExpandedChange = { regionExpandida = !regionExpandida }
+            ) {
+                OutlinedTextField(
+                    value = region,
+                    onValueChange = {},
+                    readOnly = true,
+                    label = { Text("Región") },
+                    isError = regionError != null,
+                    supportingText = {
+                        regionError?.let {
+                            Text(it)
+                        }
+                    },
+                    trailingIcon = {
+                        ExposedDropdownMenuDefaults.TrailingIcon(
+                            expanded = regionExpandida
+                        )
+                    },
+                    modifier = Modifier
+                        .menuAnchor()
+                        .fillMaxWidth()
+                )
 
-            OutlinedTextField(
-                value = region,
-                onValueChange = { viewModel.onRegionChange(it) },
-                label = { Text("Región") },
-                modifier = Modifier.fillMaxWidth()
-            )
+
+                ExposedDropdownMenu(
+                    expanded = regionExpandida,
+                    onDismissRequest = { regionExpandida = false }
+                ) {
+                    regiones.forEach { opcion ->
+                        DropdownMenuItem(
+                            text = { Text(opcion) },
+                            onClick = {
+                                viewModel.onRegionChange(opcion)
+                                regionExpandida = false
+                            }
+                        )
+                    }
+                }
+            }
+
+            if (region == "Región Metropolitana de Santiago") {
+
+                ExposedDropdownMenuBox(
+                    expanded = comunaExpandida,
+                    onExpandedChange = { comunaExpandida = !comunaExpandida }
+                ) {
+                    OutlinedTextField(
+                        value = comuna,
+                        onValueChange = {},
+                        readOnly = true,
+                        label = { Text("Comuna") },
+                        trailingIcon = {
+                            ExposedDropdownMenuDefaults.TrailingIcon(
+                                expanded = comunaExpandida
+                            )
+                        },
+                        modifier = Modifier
+                            .menuAnchor()
+                            .fillMaxWidth()
+                    )
+
+                    ExposedDropdownMenu(
+                        expanded = comunaExpandida,
+                        onDismissRequest = { comunaExpandida = false }
+                    ) {
+                        comunasMetropolitana.forEach { opcion ->
+                            DropdownMenuItem(
+                                text = { Text(opcion) },
+                                onClick = {
+                                    viewModel.onComunaChange(opcion)
+                                    comunaExpandida = false
+                                }
+                            )
+                        }
+                    }
+                }
+
+            } else if (region.isNotBlank()) {
+
+                OutlinedTextField(
+                    value = comuna,
+                    onValueChange = { viewModel.onComunaChange(it) },
+                    label = { Text("Comuna") },
+                    isError = comunaError != null,
+                    supportingText = {
+                        comunaError?.let {
+                            Text(it)
+                        }
+                    },
+                    trailingIcon = {
+                        if (comunaError != null) {
+                            Icon(
+                                Icons.Filled.ErrorOutline,
+                                contentDescription = "Error"
+                            )
+                        }
+                    },
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
 
             OutlinedTextField(
                 value = observaciones,
