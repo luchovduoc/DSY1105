@@ -12,6 +12,7 @@ import com.duoc.dsy1105.ui.screens.LoginScreen
 import com.duoc.dsy1105.ui.screens.OportunidadDetalleScreen
 import com.duoc.dsy1105.ui.screens.OportunidadFormScreen
 import com.duoc.dsy1105.ui.screens.OportunidadesScreen
+import com.duoc.dsy1105.ui.screens.OrganizacionFormScreen
 import com.duoc.dsy1105.ui.screens.OrganizacionesScreen
 import com.duoc.dsy1105.ui.screens.QrScannerScreen
 import com.duoc.dsy1105.ui.screens.RegistroScreen
@@ -86,6 +87,10 @@ fun AppNav(
                 navController = navController,
                 oportunidadId = id
             )
+        }
+
+        composable("organizacion_form") {
+            OrganizacionFormScreen(navController = navController)
         }
 
     } // fin NavHost

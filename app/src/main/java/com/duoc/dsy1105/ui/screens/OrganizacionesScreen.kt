@@ -1,5 +1,6 @@
 package com.duoc.dsy1105.ui.screens
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -8,39 +9,20 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import com.duoc.dsy1105.model.Organizacion
+import com.duoc.dsy1105.database.OrganizacionEntity
+import com.duoc.dsy1105.viewmodel.OrganizacionViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun OrganizacionesScreen(navController: NavController) {
 
-    val organizaciones = listOf(
-        Organizacion(
-            id = 1,
-            nombre = "Municipalidad de Santiago",
-            tipoOrganizacion = "Municipalidad",
-            rubro = "Sector público",
-            comuna = "Santiago",
-            region = "Metropolitana",
-            sitioWeb = "www.municipalidaddesantiago.cl",
-            publicoAsociado = "Funcionarios y vecinos",
-            observaciones = ""
-        ),
-        Organizacion(
-            id = 2,
-            nombre = "Empresa Ficticia S.A.",
-            tipoOrganizacion = "Empresa",
-            rubro = "Tecnología",
-            comuna = "Providencia",
-            region = "Metropolitana",
-            sitioWeb = "www.empresaficticia.cl",
-            publicoAsociado = "Colaboradores",
-            observaciones = ""
-        )
-    )
+    val viewModel: OrganizacionViewModel = viewModel()
+    val organizaciones by viewModel.organizaciones.collectAsState()
 
     Scaffold(
         topBar = {
@@ -55,29 +37,48 @@ fun OrganizacionesScreen(navController: NavController) {
                     }
                 }
             )
-        },
+        }, // fin topBar
         floatingActionButton = {
-            FloatingActionButton(onClick = { /* agregar organizacion */ }) {
+            FloatingActionButton(onClick = {
+                navController.navigate("organizacion_form")
+            }) {
                 Icon(Icons.Filled.Add, contentDescription = "Agregar")
             }
-        }
+        } // fin floatingActionButton
     ) { innerPadding ->
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding)
-                .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            items(organizaciones) { organizacion ->
-                OrganizacionCard(organizacion = organizacion)
-            }
+
+        if (organizaciones.isEmpty()) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(innerPadding),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = "No hay organizaciones registradas",
+                    style = MaterialTheme.typography.bodyMedium
+                )
+            } // fin Box
+        } else {
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(innerPadding)
+                    .padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                items(organizaciones) { organizacion ->
+                    OrganizacionCard(organizacion = organizacion)
+                } // fin items
+            } // fin LazyColumn
         }
-    }
-}
+
+    } // fin Scaffold
+
+} // fin OrganizacionesScreen
 
 @Composable
-fun OrganizacionCard(organizacion: Organizacion) {
+fun OrganizacionCard(organizacion: OrganizacionEntity) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
@@ -107,8 +108,7 @@ fun OrganizacionCard(organizacion: Organizacion) {
                     text = organizacion.region,
                     style = MaterialTheme.typography.bodySmall
                 )
-            }
-        }
-    }
-}
-
+            } // fin Row
+        } // fin Column
+    } // fin Card
+} // fin OrganizacionCard
