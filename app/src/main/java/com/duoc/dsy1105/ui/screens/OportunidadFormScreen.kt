@@ -144,7 +144,31 @@ fun OportunidadFormScreen(
                     }
                 }
             )
-        } // fin topBar
+        }, // fin topBar
+        bottomBar = {
+            Button(
+                onClick = {
+                    if (esEdicion) {
+                        viewModel.actualizar(oportunidadId!!) {}
+                    } else {
+                        viewModel.guardar {}
+                    }
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                enabled = !estado.guardando
+            ) {
+                if (estado.guardando) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(20.dp),
+                        strokeWidth = 2.dp
+                    )
+                } else {
+                    Text(if (esEdicion) "Actualizar" else "Guardar")
+                }
+            } // fin Button
+        } // fin bottomBar
     ) { innerPadding ->
 
         Column(
@@ -404,30 +428,6 @@ fun OportunidadFormScreen(
                     contentScale = ContentScale.Crop
                 )
             }// fin Mostrar foto con animación si existe
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            // Boton guardar
-            Button(
-                onClick = {
-                    if (esEdicion) {
-                        viewModel.actualizar(oportunidadId!!) {}
-                    } else {
-                        viewModel.guardar {}
-                    }
-                },
-                modifier = Modifier.fillMaxWidth(),
-                enabled = !estado.guardando
-            ) {
-                if (estado.guardando) {
-                    CircularProgressIndicator(
-                        modifier = Modifier.size(20.dp),
-                        strokeWidth = 2.dp
-                    )
-                } else {
-                    Text(if (esEdicion) "Actualizar" else "Guardar")
-                }
-            } // fin Button guardar
 
         } // fin Column
 
