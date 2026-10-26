@@ -39,6 +39,32 @@ fun OportunidadFormScreen(
     // URI temporal para la foto
     var fotoUri by remember { mutableStateOf<Uri?>(null) }
 
+    var prioridadExpandida by remember { mutableStateOf(false) }
+
+    val opcionesPrioridad = listOf(
+        "Alta",
+        "Media",
+        "Baja"
+    )
+    var potencialExpandido by remember { mutableStateOf(false) }
+    var estadoExpandido by remember { mutableStateOf(false) }
+
+    val opcionesPotencial = listOf(
+        "Alto",
+        "Medio",
+        "Bajo"
+    )
+
+    val opcionesEstado = listOf(
+        "Evento identificado",
+        "Contacto pendiente",
+        "Contacto realizado",
+        "Propuesta enviada",
+        "En espera de respuesta",
+        "Participación confirmada",
+        "Oportunidad descartada"
+    )
+
     // Recibir resultado del QR
     val qrResult = navController.currentBackStackEntry
         ?.savedStateHandle
@@ -163,32 +189,132 @@ fun OportunidadFormScreen(
             } // fin OutlinedButton QR
 
             // Prioridad
-            OutlinedTextField(
-                value = estado.nivelPrioridad,
-                onValueChange = { viewModel.onPrioridadChange(it) },
-                label = { Text("Prioridad (Alta / Media / Baja)") },
-                isError = estado.prioridadError != null,
-                supportingText = { Text(estado.prioridadError ?: "") },
-                modifier = Modifier.fillMaxWidth()
-            )
+            ExposedDropdownMenuBox(
+                expanded = prioridadExpandida,
+                onExpandedChange = {
+                    prioridadExpandida = !prioridadExpandida
+                }
+            ) {
+                OutlinedTextField(
+                    value = estado.nivelPrioridad,
+                    onValueChange = {},
+                    readOnly = true,
+                    label = { Text("Prioridad") },
+                    trailingIcon = {
+                        ExposedDropdownMenuDefaults.TrailingIcon(
+                            expanded = prioridadExpandida
+                        )
+                    },
+                    isError = estado.prioridadError != null,
+                    supportingText = {
+                        Text(estado.prioridadError ?: "")
+                    },
+                    modifier = Modifier
+                        .menuAnchor()
+                        .fillMaxWidth()
+                )
+
+                ExposedDropdownMenu(
+                    expanded = prioridadExpandida,
+                    onDismissRequest = {
+                        prioridadExpandida = false
+                    }
+                ) {
+                    opcionesPrioridad.forEach { opcion ->
+                        DropdownMenuItem(
+                            text = { Text(opcion) },
+                            onClick = {
+                                viewModel.onPrioridadChange(opcion)
+                                prioridadExpandida = false
+                            }
+                        )
+                    }
+                }
+            }
 
             // Potencial comercial
-            OutlinedTextField(
-                value = estado.potencialComercial,
-                onValueChange = { viewModel.onPotencialChange(it) },
-                label = { Text("Potencial comercial (Alto / Medio / Bajo)") },
-                isError = estado.potencialError != null,
-                supportingText = { Text(estado.potencialError ?: "") },
-                modifier = Modifier.fillMaxWidth()
-            )
+            ExposedDropdownMenuBox(
+                expanded = potencialExpandido,
+                onExpandedChange = {
+                    potencialExpandido = !potencialExpandido
+                }
+            ) {
+                OutlinedTextField(
+                    value = estado.potencialComercial,
+                    onValueChange = {},
+                    readOnly = true,
+                    label = { Text("Potencial comercial") },
+                    trailingIcon = {
+                        ExposedDropdownMenuDefaults.TrailingIcon(
+                            expanded = potencialExpandido
+                        )
+                    },
+                    isError = estado.potencialError != null,
+                    supportingText = {
+                        Text(estado.potencialError ?: "")
+                    },
+                    modifier = Modifier
+                        .menuAnchor()
+                        .fillMaxWidth()
+                )
+
+                ExposedDropdownMenu(
+                    expanded = potencialExpandido,
+                    onDismissRequest = {
+                        potencialExpandido = false
+                    }
+                ) {
+                    opcionesPotencial.forEach { opcion ->
+                        DropdownMenuItem(
+                            text = { Text(opcion) },
+                            onClick = {
+                                viewModel.onPotencialChange(opcion)
+                                potencialExpandido = false
+                            }
+                        )
+                    }
+                }
+            }
 
             // Estado de gestión
-            OutlinedTextField(
-                value = estado.estado,
-                onValueChange = { viewModel.onEstadoChange(it) },
-                label = { Text("Estado de gestión") },
-                modifier = Modifier.fillMaxWidth()
-            )
+            ExposedDropdownMenuBox(
+                expanded = estadoExpandido,
+                onExpandedChange = {
+                    estadoExpandido = !estadoExpandido
+                }
+            ) {
+                OutlinedTextField(
+                    value = estado.estado,
+                    onValueChange = {},
+                    readOnly = true,
+                    label = { Text("Estado de gestión") },
+                    trailingIcon = {
+                        ExposedDropdownMenuDefaults.TrailingIcon(
+                            expanded = estadoExpandido
+                        )
+                    },
+                    modifier = Modifier
+                        .menuAnchor()
+                        .fillMaxWidth()
+                )
+
+                ExposedDropdownMenu(
+                    expanded = estadoExpandido,
+                    onDismissRequest = {
+                        estadoExpandido = false
+                    }
+                ) {
+                    opcionesEstado.forEach { opcion ->
+                        DropdownMenuItem(
+                            text = { Text(opcion) },
+                            onClick = {
+                                viewModel.onEstadoChange(opcion)
+                                estadoExpandido = false
+                            }
+                        )
+                    }
+                }
+            }
 
             // Observaciones
             OutlinedTextField(
