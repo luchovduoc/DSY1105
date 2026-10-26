@@ -5,6 +5,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.ErrorOutline
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
@@ -19,14 +20,17 @@ fun RegistroScreen(
     navController: NavController,
     viewModel: LoginViewModel
 ) {
-    var nombre by remember { mutableStateOf("") }
-    var email by remember { mutableStateOf("") }
-    var clave by remember { mutableStateOf("") }
-    var confirmarClave by remember { mutableStateOf("") }
-    var errorConfirmar by remember { mutableStateOf<String?>(null) }
-
     val error by viewModel.error.collectAsState()
     val registroExitoso by viewModel.registroExitoso.collectAsState()
+    val nombre by viewModel.registroNombre.collectAsState()
+    val email by viewModel.registroEmail.collectAsState()
+    val clave by viewModel.registroClave.collectAsState()
+    val confirmarClave by viewModel.registroConfirmarClave.collectAsState()
+
+    val nombreError by viewModel.registroNombreError.collectAsState()
+    val emailError by viewModel.registroEmailError.collectAsState()
+    val claveError by viewModel.registroClaveError.collectAsState()
+    val confirmarError by viewModel.registroConfirmarError.collectAsState()
 
     // Cuando el registro es exitoso vuelve al login
     LaunchedEffect(registroExitoso) {
@@ -72,39 +76,90 @@ fun RegistroScreen(
             // Nombre
             OutlinedTextField(
                 value = nombre,
-                onValueChange = { nombre = it },
+                onValueChange = { viewModel.onRegistroNombreChange(it) },
                 label = { Text("Nombre completo") },
+                isError = nombreError != null,
+                supportingText = {
+                    nombreError?.let {
+                        Text(it)
+                    }
+                },
+                trailingIcon = {
+                    if (nombreError != null) {
+                        Icon(
+                            Icons.Filled.ErrorOutline,
+                            contentDescription = "Error"
+                        )
+                    }
+                },
                 modifier = Modifier.fillMaxWidth()
             )
 
             // Email
             OutlinedTextField(
                 value = email,
-                onValueChange = { email = it },
+                onValueChange = { viewModel.onRegistroEmailChange(it) },
                 label = { Text("Email") },
+                isError = emailError != null,
+                supportingText = {
+                    emailError?.let {
+                        Text(it)
+                    }
+                },
+                trailingIcon = {
+                    if (emailError != null) {
+                        Icon(
+                            Icons.Filled.ErrorOutline,
+                            contentDescription = "Error"
+                        )
+                    }
+                },
                 modifier = Modifier.fillMaxWidth()
             )
 
             // Clave
             OutlinedTextField(
                 value = clave,
-                onValueChange = { clave = it },
+                onValueChange = { viewModel.onRegistroClaveChange(it) },
                 label = { Text("Contraseña") },
                 visualTransformation = PasswordVisualTransformation(),
+                isError = claveError != null,
+                supportingText = {
+                    claveError?.let {
+                        Text(it)
+                    }
+                },
+                trailingIcon = {
+                    if (claveError != null) {
+                        Icon(
+                            Icons.Filled.ErrorOutline,
+                            contentDescription = "Error"
+                        )
+                    }
+                },
                 modifier = Modifier.fillMaxWidth()
             )
 
             // Confirmar clave
             OutlinedTextField(
                 value = confirmarClave,
-                onValueChange = {
-                    confirmarClave = it
-                    errorConfirmar = null
-                },
+                onValueChange = { viewModel.onRegistroConfirmarClaveChange(it) },
                 label = { Text("Confirmar contraseña") },
                 visualTransformation = PasswordVisualTransformation(),
-                isError = errorConfirmar != null,
-                supportingText = { Text(errorConfirmar ?: "") },
+                isError = confirmarError != null,
+                supportingText = {
+                    confirmarError?.let {
+                        Text(it)
+                    }
+                },
+                trailingIcon = {
+                    if (confirmarError != null) {
+                        Icon(
+                            Icons.Filled.ErrorOutline,
+                            contentDescription = "Error"
+                        )
+                    }
+                },
                 modifier = Modifier.fillMaxWidth()
             )
 
@@ -122,15 +177,7 @@ fun RegistroScreen(
             // Boton registrar
             Button(
                 onClick = {
-                    if (clave != confirmarClave) {
-                        errorConfirmar = "Las contraseñas no coinciden"
-                        return@Button
-                    }
-                    if (nombre.isBlank() || email.isBlank() || clave.isBlank()) {
-                        errorConfirmar = "Todos los campos son obligatorios"
-                        return@Button
-                    }
-                    viewModel.registrar(nombre, email, clave)
+                    viewModel.registrarFormulario()
                 },
                 modifier = Modifier.fillMaxWidth()
             ) {
