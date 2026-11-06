@@ -13,6 +13,8 @@ data class OportunidadUiState(
     val fotoUri: String = "",//agregada para camara
     val latitud: Double? = null,
     val longitud: Double? = null,
+    val responsableId: Long = 0, // AGREGADO: quién es el responsable (0 = sin asignar)
+    val materiales: String = "", // AGREGADO: lo que registra Marketing
     // Errores
     val nombreError: String? = null,
     val tipoError: String? = null,

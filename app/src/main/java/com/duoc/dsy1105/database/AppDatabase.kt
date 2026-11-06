@@ -9,7 +9,7 @@ import androidx.sqlite.db.SupportSQLiteDatabase
 
 @Database(
     entities = [OportunidadEntity::class, UsuarioEntity::class, OrganizacionEntity::class],
-    version = 6
+    version = 7
 ) // fin @Database
 abstract class AppDatabase : RoomDatabase() {
 
@@ -52,6 +52,17 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
+        val MIGRATION_6_7 = object : Migration(6, 7) { // AGREGADO
+            override fun migrate(database: SupportSQLiteDatabase) {
+                database.execSQL(
+                    "ALTER TABLE oportunidades ADD COLUMN responsableId INTEGER NOT NULL DEFAULT 0"
+                )
+                database.execSQL(
+                    "ALTER TABLE oportunidades ADD COLUMN materiales TEXT NOT NULL DEFAULT ''"
+                )
+            }
+        } // fin MIGRATION_6_7
+
         fun getDatabase(context: Context): AppDatabase {
             return INSTANCE ?: synchronized(this) {
                 Room.databaseBuilder(
@@ -61,7 +72,8 @@ abstract class AppDatabase : RoomDatabase() {
                 )
                     .addMigrations(
                         MIGRATION_4_5,
-                        MIGRATION_5_6
+                        MIGRATION_5_6,
+                        MIGRATION_6_7 // AGREGADO
                     )
                     .fallbackToDestructiveMigrationOnDowngrade(true)
                     .build().also { INSTANCE = it }

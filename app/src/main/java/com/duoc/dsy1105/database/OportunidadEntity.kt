@@ -17,6 +17,8 @@ data class OportunidadEntity(
     val observaciones: String,
     val fotoUri: String = "",
     val latitud: Double? = null,
-    val longitud: Double? = null
+    val longitud: Double? = null,
+    val responsableId: Long = 0, // AGREGADO: id del usuario responsable (0 = sin asignar)
+    val materiales: String = "" // AGREGADO: lo que registra Marketing
 ) // fin data class OportunidadEntity
 
