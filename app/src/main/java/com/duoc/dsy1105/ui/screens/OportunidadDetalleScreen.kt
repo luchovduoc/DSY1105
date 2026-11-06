@@ -2,6 +2,7 @@ package com.duoc.dsy1105.ui.screens
 
 import android.graphics.Bitmap
 import android.graphics.Color
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -17,6 +18,8 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Delete // AGREGADO
+import androidx.compose.material3.AlertDialog // AGREGADO
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
@@ -25,10 +28,14 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton // AGREGADO
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf // AGREGADO
+import androidx.compose.runtime.remember // AGREGADO
+import androidx.compose.runtime.setValue // AGREGADO
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.asImageBitmap
@@ -51,6 +58,32 @@ fun OportunidadDetalleScreen(
     val oportunidades by viewModel.oportunidades.collectAsState()
     val oportunidad = oportunidades.find { it.id == oportunidadId }
 
+    // AGREGADO: estado visual del dialogo (vive en la UI, no en el ViewModel)
+    var mostrarDialogo by remember { mutableStateOf(false) }
+
+    // AGREGADO: dialogo de confirmacion
+    if (mostrarDialogo && oportunidad != null) {
+        AlertDialog(
+            onDismissRequest = { mostrarDialogo = false },
+            title = { Text("Eliminar oportunidad") },
+            text = { Text("¿Seguro que quieres eliminar \"${oportunidad.nombre}\"? Esta acción no se puede deshacer.") },
+            confirmButton = {
+                TextButton(onClick = {
+                    viewModel.eliminar(oportunidad)
+                    mostrarDialogo = false
+                    navController.popBackStack()
+                }) {
+                    Text("Eliminar")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { mostrarDialogo = false }) {
+                    Text("Cancelar")
+                }
+            }
+        ) // fin AlertDialog
+    } // fin if mostrarDialogo
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -61,6 +94,14 @@ fun OportunidadDetalleScreen(
                             Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = "Volver"
                         )
+                    }
+                },
+                // AGREGADO: boton basurero
+                actions = {
+                    if (oportunidad != null) {
+                        IconButton(onClick = { mostrarDialogo = true }) {
+                            Icon(Icons.Filled.Delete, contentDescription = "Eliminar")
+                        }
                     }
                 }
             )
@@ -103,7 +144,7 @@ fun OportunidadDetalleScreen(
                     InfoRow("Observaciones", oportunidad.observaciones)
                 }
 
-// Ubicacion registrada
+                // Ubicacion registrada
                 if (oportunidad.latitud != null && oportunidad.longitud != null) {
 
                     Spacer(modifier = Modifier.height(4.dp))

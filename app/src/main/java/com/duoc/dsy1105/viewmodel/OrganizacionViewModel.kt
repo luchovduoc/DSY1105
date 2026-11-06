@@ -9,6 +9,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.first // AGREGADO
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
@@ -142,13 +143,17 @@ class OrganizacionViewModel(app: Application) : AndroidViewModel(app) {
 
     // Limpiar formulario
     fun limpiarFormulario() {
+        _nombre.value = ""
+        _tipoOrganizacion.value = ""
+        _rubro.value = ""
+        _comuna.value = ""
+        _region.value = ""
+        _observaciones.value = ""
         _nombreError.value = null
         _tipoError.value = null
         _rubroError.value = null
         _regionError.value = null
         _comunaError.value = null
-        _region.value = ""
-        _observaciones.value = ""
         _guardadoExitosamente.value = false
     } // fin limpiarFormulario
 
@@ -158,5 +163,39 @@ class OrganizacionViewModel(app: Application) : AndroidViewModel(app) {
             repository.eliminar(organizacion)
         } // fin launch
     } // fin eliminar
+
+
+    // AGREGADO: cargar una organizacion para editarla
+    fun cargarOrganizacion(id: Long) {
+        viewModelScope.launch {
+            repository.obtenerPorId(id).first()?.let { o ->
+                _nombre.value = o.nombre
+                _tipoOrganizacion.value = o.tipoOrganizacion
+                _rubro.value = o.rubro
+                _region.value = o.region
+                _comuna.value = o.comuna
+                _observaciones.value = o.observaciones
+            }
+        } // fin launch
+    } // fin cargarOrganizacion
+
+    // AGREGADO: actualizar una organizacion existente
+    fun actualizar(id: Long) {
+        if (!validar()) return
+        viewModelScope.launch {
+            repository.actualizar(
+                OrganizacionEntity(
+                    id = id,
+                    nombre = _nombre.value,
+                    tipoOrganizacion = _tipoOrganizacion.value,
+                    rubro = _rubro.value,
+                    comuna = _comuna.value,
+                    region = _region.value,
+                    observaciones = _observaciones.value
+                )
+            )
+            _guardadoExitosamente.value = true
+        } // fin launch
+    } // fin actualizar
 
 } // fin class OrganizacionViewModel

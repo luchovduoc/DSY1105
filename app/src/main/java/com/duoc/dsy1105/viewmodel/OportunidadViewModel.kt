@@ -192,4 +192,12 @@ class OportunidadViewModel(app: Application) : AndroidViewModel(app) {
         } // fin launch
     } // fin actualizar
 
+    // Eliminar oportunidad existente
+    fun eliminar(oportunidad: OportunidadEntity) {
+        viewModelScope.launch {
+            repository.eliminar(oportunidad)
+        } // fin launch
+    } // fin eliminar
+
+
 } // fin class OportunidadViewModel

@@ -26,11 +26,16 @@ fun RegistroScreen(
     val email by viewModel.registroEmail.collectAsState()
     val clave by viewModel.registroClave.collectAsState()
     val confirmarClave by viewModel.registroConfirmarClave.collectAsState()
+    val perfil by viewModel.registroPerfil.collectAsState() // AGREGADO
+    var perfilExpandido by remember { mutableStateOf(false) } // AGREGADO
+    val opcionesPerfil = listOf("Ejecutivo Comercial", "Supervisor Comercial", "Marketing") // AGREGADO
 
     val nombreError by viewModel.registroNombreError.collectAsState()
     val emailError by viewModel.registroEmailError.collectAsState()
     val claveError by viewModel.registroClaveError.collectAsState()
     val confirmarError by viewModel.registroConfirmarError.collectAsState()
+    val perfilError by viewModel.registroPerfilError.collectAsState() // AGREGADO
+
 
     // Cuando el registro es exitoso vuelve al login
     LaunchedEffect(registroExitoso) {
@@ -162,6 +167,41 @@ fun RegistroScreen(
                 },
                 modifier = Modifier.fillMaxWidth()
             )
+            // Perfil
+            ExposedDropdownMenuBox(
+                expanded = perfilExpandido,
+                onExpandedChange = { perfilExpandido = !perfilExpandido }
+            ) {
+                OutlinedTextField(
+                    value = perfil,
+                    onValueChange = {},
+                    readOnly = true,
+                    label = { Text("Perfil") },
+                    isError = perfilError != null,
+                    supportingText = { perfilError?.let { Text(it) } },
+                    trailingIcon = {
+                        ExposedDropdownMenuDefaults.TrailingIcon(expanded = perfilExpandido)
+                    },
+                    modifier = Modifier
+                        .menuAnchor()
+                        .fillMaxWidth()
+                )
+
+                ExposedDropdownMenu(
+                    expanded = perfilExpandido,
+                    onDismissRequest = { perfilExpandido = false }
+                ) {
+                    opcionesPerfil.forEach { opcion ->
+                        DropdownMenuItem(
+                            text = { Text(opcion) },
+                            onClick = {
+                                viewModel.onRegistroPerfilChange(opcion)
+                                perfilExpandido = false
+                            }
+                        )
+                    }
+                }
+            } // fin Perfil
 
             // Error del repository
             if (error != null) {

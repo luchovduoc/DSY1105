@@ -58,6 +58,12 @@ class LoginViewModel(app: Application) : AndroidViewModel(app) {
     private val _registroConfirmarError = MutableStateFlow<String?>(null)
     val registroConfirmarError: StateFlow<String?> = _registroConfirmarError
 
+    private val _registroPerfil = MutableStateFlow("") // AGREGADO
+    val registroPerfil: StateFlow<String> = _registroPerfil
+
+    private val _registroPerfilError = MutableStateFlow<String?>(null) // AGREGADO
+    val registroPerfilError: StateFlow<String?> = _registroPerfilError
+
     fun onEmailChange(v: String) {
         _email.value = v
         _emailError.value = null
@@ -92,6 +98,12 @@ class LoginViewModel(app: Application) : AndroidViewModel(app) {
     fun onRegistroConfirmarClaveChange(v: String) {
         _registroConfirmarClave.value = v
         _registroConfirmarError.value = null
+        _error.value = null
+    }
+
+    fun onRegistroPerfilChange(v: String) { // AGREGADO
+        _registroPerfil.value = v
+        _registroPerfilError.value = null
         _error.value = null
     }
 
@@ -150,6 +162,11 @@ class LoginViewModel(app: Application) : AndroidViewModel(app) {
             _registroClave.value != _registroConfirmarClave.value
         ) {
             _registroConfirmarError.value = "Las contraseñas no coinciden"
+            valido = false
+        }
+
+        if (_registroPerfil.value.isBlank()) { // AGREGADO
+            _registroPerfilError.value = "Selecciona un perfil"
             valido = false
         }
 
@@ -219,6 +236,8 @@ class LoginViewModel(app: Application) : AndroidViewModel(app) {
         _registroEmail.value = ""
         _registroClave.value = ""
         _registroConfirmarClave.value = ""
+        _registroPerfil.value = "" // AGREGADO
+        _registroPerfilError.value = null // AGREGADO
 
         _registroNombreError.value = null
         _registroEmailError.value = null
@@ -235,7 +254,8 @@ class LoginViewModel(app: Application) : AndroidViewModel(app) {
             val exito = authRepository.registrar(
                 nombre = _registroNombre.value,
                 email = _registroEmail.value,
-                clave = _registroClave.value
+                clave = _registroClave.value,
+                perfil = _registroPerfil.value // AGREGADO
             )
 
             if (exito) {

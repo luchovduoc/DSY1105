@@ -89,8 +89,12 @@ fun AppNav(
             )
         }
 
-        composable("organizacion_form") {
-            OrganizacionFormScreen(navController = navController)
+        composable("organizacion_form?id={id}") { backStackEntry ->
+            val id = backStackEntry.arguments?.getString("id")?.toLongOrNull()
+            OrganizacionFormScreen(
+                navController = navController,
+                organizacionId = id
+            )
         }
 
     } // fin NavHost

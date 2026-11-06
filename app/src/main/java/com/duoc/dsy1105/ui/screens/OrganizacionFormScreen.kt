@@ -1,5 +1,13 @@
 package com.duoc.dsy1105.ui.screens
 
+
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenuDefaults
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -31,11 +39,23 @@ import androidx.navigation.NavController
 import androidx.compose.material.icons.filled.ErrorOutline
 import com.duoc.dsy1105.viewmodel.OrganizacionViewModel
 
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun OrganizacionFormScreen(navController: NavController) {
+fun OrganizacionFormScreen(
+    navController: NavController,
+    organizacionId: Long? = null // AGREGADO
+) {
 
     val viewModel: OrganizacionViewModel = viewModel()
+    val esEdicion = organizacionId != null // AGREGADO
+
+// AGREGADO: si es edicion, carga los datos una sola vez
+    LaunchedEffect(organizacionId) {
+        if (organizacionId != null) {
+            viewModel.cargarOrganizacion(organizacionId)
+        }
+    }
     val nombre by viewModel.nombre.collectAsState()
     val tipoOrganizacion by viewModel.tipoOrganizacion.collectAsState()
     val rubro by viewModel.rubro.collectAsState()
@@ -135,7 +155,7 @@ fun OrganizacionFormScreen(navController: NavController) {
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Nueva Organización") },
+                title = { Text(if (esEdicion) "Editar Organización" else "Nueva Organización") },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
                         Icon(
@@ -335,10 +355,13 @@ fun OrganizacionFormScreen(navController: NavController) {
             Spacer(modifier = Modifier.height(8.dp))
 
             Button(
-                onClick = { viewModel.guardar() },
+                onClick = {
+                    if (organizacionId != null) viewModel.actualizar(organizacionId)
+                    else viewModel.guardar()
+                },
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Text("Guardar")
+                Text(if (esEdicion) "Actualizar" else "Guardar")
             } // fin Button
 
         } // fin Column
