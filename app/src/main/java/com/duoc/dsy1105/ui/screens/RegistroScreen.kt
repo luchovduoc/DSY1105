@@ -20,17 +20,19 @@ fun RegistroScreen(
     navController: NavController,
     viewModel: LoginViewModel
 ) {
-    val error by viewModel.error.collectAsState()
-    val registroExitoso by viewModel.registroExitoso.collectAsState()
-    val nombre by viewModel.registroNombre.collectAsState()
-    val email by viewModel.registroEmail.collectAsState()
-    val clave by viewModel.registroClave.collectAsState()
-    val confirmarClave by viewModel.registroConfirmarClave.collectAsState()
+    // Estado único del formulario: valores y errores vienen del mismo objeto
+    val estado by viewModel.registroEstado.collectAsState()
+    val error = estado.error
+    val registroExitoso = estado.registroExitoso
+    val nombre = estado.nombre
+    val email = estado.email
+    val clave = estado.clave
+    val confirmarClave = estado.confirmarClave
 
-    val nombreError by viewModel.registroNombreError.collectAsState()
-    val emailError by viewModel.registroEmailError.collectAsState()
-    val claveError by viewModel.registroClaveError.collectAsState()
-    val confirmarError by viewModel.registroConfirmarError.collectAsState()
+    val nombreError = estado.errores.nombre
+    val emailError = estado.errores.email
+    val claveError = estado.errores.clave
+    val confirmarError = estado.errores.confirmarClave
 
     // Cuando el registro es exitoso vuelve al login
     LaunchedEffect(registroExitoso) {
@@ -162,11 +164,17 @@ fun RegistroScreen(
                 },
                 modifier = Modifier.fillMaxWidth()
             )
+            // El perfil no se elige aquí: toda cuenta nueva parte como Ejecutivo
+            // y un supervisor la ajusta desde "Gestión de usuarios".
+            Text(
+                text = "Tu cuenta se crea con perfil Ejecutivo Comercial. Un supervisor puede cambiarlo.",
+                style = MaterialTheme.typography.bodySmall
+            )
 
             // Error del repository
             if (error != null) {
                 Text(
-                    text = error!!,
+                    text = error,
                     color = MaterialTheme.colorScheme.error,
                     style = MaterialTheme.typography.bodySmall
                 )

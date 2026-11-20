@@ -3,7 +3,6 @@ package com.duoc.dsy1105.ui.screens
 import android.Manifest
 import android.content.pm.PackageManager
 import android.net.Uri
-import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
@@ -20,7 +19,6 @@ import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.material.icons.filled.QrCodeScanner
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -33,6 +31,12 @@ import androidx.navigation.NavController
 import androidx.compose.material.icons.filled.MyLocation
 import androidx.compose.material.icons.filled.ErrorOutline
 import coil.compose.AsyncImage
+import com.duoc.dsy1105.model.EstadosOportunidad
+import com.duoc.dsy1105.model.Perfil
+import com.duoc.dsy1105.model.TiposEvento
+import com.duoc.dsy1105.ui.components.SelectorDesplegable
+import com.duoc.dsy1105.ui.components.SelectorEntidad
+import com.duoc.dsy1105.viewmodel.LoginViewModel
 import com.duoc.dsy1105.viewmodel.OportunidadViewModel
 import java.io.File
 import android.content.Context
@@ -44,12 +48,39 @@ import android.os.CancellationSignal
 @Composable
 fun OportunidadFormScreen(
     navController: NavController,
+    loginViewModel: LoginViewModel,
     oportunidadId: Long? = null
 ) {
 
     val viewModel: OportunidadViewModel = viewModel()
     val estado by viewModel.estado.collectAsState()
     val esEdicion = oportunidadId != null
+
+    val sesion by loginViewModel.usuario.collectAsState()
+    val perfil = sesion?.perfil
+    val usuarioId = sesion?.id?.toLong() ?: 0L
+    val usuarios by viewModel.usuarios.collectAsState()
+    val eventos by viewModel.eventos.collectAsState()
+    val organizaciones by viewModel.organizaciones.collectAsState()
+    val contactos by viewModel.contactos.collectAsState()
+
+    // Permisos segun el perfil (el repositorio los vuelve a validar al guardar)
+    val puedeEditarDatos = perfil != null && (
+        if (esEdicion) perfil.puedeEditarOportunidad(estado.responsableId, usuarioId)
+        else perfil.puedeCrearOportunidades
+        )
+    val puedeEditarObservaciones = perfil != null && (
+        if (esEdicion) perfil.puedeEditarObservaciones(estado.estado, estado.responsableId, usuarioId)
+        else perfil.puedeCrearOportunidades
+        )
+    // EN PAUSA (perfil Marketing): val puedeEditarMateriales = esEdicion && perfil?.puedeEditarMateriales == true
+    // El estado lo gestiona el supervisor (el ejecutivo pasa a En gestion al registrar su primera gestion)
+    val puedeCambiarEstado = perfil?.puedeCambiarEstado == true
+    val puedeAsignarResponsable = esEdicion && perfil?.puedeAsignarResponsable == true
+    val puedeGuardar = puedeEditarDatos || puedeEditarObservaciones
+    // En edicion, los datos se cargan de forma asincrona: antes no se sabe si hay permiso
+    val datosCargados = !esEdicion || estado.nombre.isNotEmpty()
+    var responsableExpandido by remember { mutableStateOf(false) }
     val context = LocalContext.current
 
     // URI temporal para la foto
@@ -71,15 +102,7 @@ fun OportunidadFormScreen(
         "Bajo"
     )
 
-    val opcionesEstado = listOf(
-        "Evento identificado",
-        "Contacto pendiente",
-        "Contacto realizado",
-        "Propuesta enviada",
-        "En espera de respuesta",
-        "Participación confirmada",
-        "Oportunidad descartada"
-    )
+    val opcionesEstado = EstadosOportunidad.todos
 
     // Recibir resultado del QR
     val qrResult = navController.currentBackStackEntry
@@ -111,20 +134,20 @@ fun OportunidadFormScreen(
         contract = ActivityResultContracts.RequestPermission()
     ) { concedido ->
         if (concedido) {
+            viewModel.onFotoError(null)
             fotoUri?.let { uri ->
                 cameraLauncher.launch(uri)
             }
         } else {
-            Toast.makeText(
-                context,
-                "Se necesita permiso de cámara para tomar la foto",
-                Toast.LENGTH_SHORT
-            ).show()
+            viewModel.onFotoError("Se necesita permiso de cámara para tomar la foto")
         }
     }// fin Launcher para solicitar permiso de cámara
 
-    // Obtener ubicacion actual del dispositivo
+    // Obtener ubicacion actual del dispositivo.
+    // Los avisos se guardan en el estado (errores.ubicacion) y se muestran bajo el boton.
     fun obtenerUbicacionActual() {
+
+        viewModel.onUbicacionError(null)
 
         val locationManager =
             context.getSystemService(Context.LOCATION_SERVICE) as LocationManager
@@ -142,11 +165,7 @@ fun OportunidadFormScreen(
             ) == PackageManager.PERMISSION_GRANTED
 
         if (!tieneFine && !tieneCoarse) {
-            Toast.makeText(
-                context,
-                "No se cuenta con permiso de ubicación",
-                Toast.LENGTH_SHORT
-            ).show()
+            viewModel.onUbicacionError("No se cuenta con permiso de ubicación")
             return
         }
 
@@ -162,26 +181,8 @@ fun OportunidadFormScreen(
         }
 
         if (proveedores.isEmpty()) {
-            Toast.makeText(
-                context,
-                "Activa la ubicación del dispositivo",
-                Toast.LENGTH_SHORT
-            ).show()
+            viewModel.onUbicacionError("Activa la ubicación del dispositivo")
             return
-        }
-
-        fun registrarUbicacion(ubicacion: Location) {
-
-            viewModel.onUbicacionChange(
-                ubicacion.latitude,
-                ubicacion.longitude
-            )
-
-            Toast.makeText(
-                context,
-                "Ubicación registrada correctamente",
-                Toast.LENGTH_SHORT
-            ).show()
         }
 
         fun intentarProveedor(indice: Int) {
@@ -198,16 +199,14 @@ fun OportunidadFormScreen(
                     }.maxByOrNull { it.time }
 
                 if (ultimaUbicacion != null) {
-
-                    registrarUbicacion(ultimaUbicacion)
-
+                    viewModel.onUbicacionChange(
+                        ultimaUbicacion.latitude,
+                        ultimaUbicacion.longitude
+                    )
                 } else {
-
-                    Toast.makeText(
-                        context,
-                        "No fue posible obtener la ubicación. Intenta nuevamente en unos segundos.",
-                        Toast.LENGTH_LONG
-                    ).show()
+                    viewModel.onUbicacionError(
+                        "No fue posible obtener la ubicación. Intenta nuevamente en unos segundos."
+                    )
                 }
 
                 return
@@ -223,84 +222,21 @@ fun OportunidadFormScreen(
                 ) { ubicacion: Location? ->
 
                     if (ubicacion != null) {
-
-                        registrarUbicacion(ubicacion)
-
+                        viewModel.onUbicacionChange(
+                            ubicacion.latitude,
+                            ubicacion.longitude
+                        )
                     } else {
-
                         intentarProveedor(indice + 1)
                     }
                 }
 
             } catch (e: SecurityException) {
-
-                Toast.makeText(
-                    context,
-                    "No se cuenta con permiso de ubicación",
-                    Toast.LENGTH_SHORT
-                ).show()
+                viewModel.onUbicacionError("No se cuenta con permiso de ubicación")
             }
         }
 
         intentarProveedor(0)
-
-
-        val proveedor = when {
-            locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER) ->
-                LocationManager.GPS_PROVIDER
-
-            locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER) ->
-                LocationManager.NETWORK_PROVIDER
-
-            else -> {
-                Toast.makeText(
-                    context,
-                    "Activa la ubicación del dispositivo",
-                    Toast.LENGTH_SHORT
-                ).show()
-                return
-            }
-        }
-
-        try {
-            LocationManagerCompat.getCurrentLocation(
-                locationManager,
-                proveedor,
-                null as CancellationSignal?,
-                ContextCompat.getMainExecutor(context)
-            ) { ubicacion: Location? ->
-
-                if (ubicacion != null) {
-
-                    viewModel.onUbicacionChange(
-                        ubicacion.latitude,
-                        ubicacion.longitude
-                    )
-
-                    Toast.makeText(
-                        context,
-                        "Ubicación registrada correctamente",
-                        Toast.LENGTH_SHORT
-                    ).show()
-
-                } else {
-
-                    Toast.makeText(
-                        context,
-                        "No fue posible obtener la ubicación",
-                        Toast.LENGTH_SHORT
-                    ).show()
-                }
-            }
-
-        } catch (e: SecurityException) {
-
-            Toast.makeText(
-                context,
-                "No se cuenta con permiso de ubicación",
-                Toast.LENGTH_SHORT
-            ).show()
-        }
     }
 
     // Launcher para solicitar permisos de ubicacion
@@ -313,19 +249,13 @@ fun OportunidadFormScreen(
                     permisos[Manifest.permission.ACCESS_COARSE_LOCATION] == true
 
         if (concedido) {
-
             obtenerUbicacionActual()
-
         } else {
-
-            Toast.makeText(
-                context,
-                "Se necesita permiso de ubicación para registrar la posición",
-                Toast.LENGTH_SHORT
-            ).show()
+            viewModel.onUbicacionError(
+                "Se necesita permiso de ubicación para registrar la posición"
+            )
         }
     }
-
 
 
     // Si es edicion carga los datos
@@ -360,17 +290,19 @@ fun OportunidadFormScreen(
         bottomBar = {
             Button(
                 onClick = {
-                    if (esEdicion) {
-                        viewModel.actualizar(oportunidadId!!) {}
-                    } else {
-                        viewModel.guardar {}
+                    sesion?.let { usuario ->
+                        if (esEdicion) {
+                            viewModel.actualizar(oportunidadId!!, usuario) {}
+                        } else {
+                            viewModel.guardar(usuario) {}
+                        }
                     }
                 },
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(16.dp)
                     .navigationBarsPadding(),
-                enabled = !estado.guardando
+                enabled = !estado.guardando && puedeGuardar
             ) {
                 if (estado.guardando) {
                     CircularProgressIndicator(
@@ -394,52 +326,63 @@ fun OportunidadFormScreen(
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
 
+            // Avisos segun el perfil
+            if (datosCargados && !puedeGuardar) {
+                Text(
+                    text = "Solo lectura: tu perfil no puede modificar esta oportunidad",
+                    color = MaterialTheme.colorScheme.error,
+                    style = MaterialTheme.typography.bodySmall
+                )
+            }
+            // EN PAUSA (perfil Marketing): aviso "Como Marketing puedes registrar materiales y observaciones"
+
+            // Error general (por ejemplo, falta de permiso al guardar)
+            estado.error?.let {
+                Text(
+                    text = it,
+                    color = MaterialTheme.colorScheme.error,
+                    style = MaterialTheme.typography.bodySmall
+                )
+            }
+
             // Nombre
             OutlinedTextField(
                 value = estado.nombre,
                 onValueChange = { viewModel.onNombreChange(it) },
                 label = { Text("Nombre de la oportunidad") },
-                isError = estado.nombreError != null,
-                supportingText = { Text(estado.nombreError ?: "") },
+                enabled = puedeEditarDatos,
+                isError = estado.errores.nombre != null,
+                supportingText = { Text(estado.errores.nombre ?: "") },
                 modifier = Modifier.fillMaxWidth()
             )
 
-            // Tipo
-            OutlinedTextField(
-                value = estado.tipoOportunidad,
-                onValueChange = { viewModel.onTipoChange(it) },
-                label = { Text("Tipo de oportunidad") },
-                isError = estado.tipoError != null,
-                trailingIcon = {
-                    if (estado.nombreError != null) {
-                        Icon(
-                            Icons.Filled.ErrorOutline,
-                            contentDescription = "Error"
-                        )
-                    }
-                },
-                supportingText = { Text(estado.tipoError ?: "") },
-                modifier = Modifier.fillMaxWidth()
-
+            // Tipo (lista de tipos del caso; permite filtrar por tipo)
+            SelectorDesplegable(
+                etiqueta = "Tipo de oportunidad",
+                valor = estado.tipoOportunidad,
+                opciones = TiposEvento.todos,
+                onSeleccion = { viewModel.onTipoChange(it) },
+                error = estado.errores.tipo,
+                enabled = puedeEditarDatos
             )
-
 
             // Descripcion
             OutlinedTextField(
                 value = estado.descripcion,
                 onValueChange = { viewModel.onDescripcionChange(it) },
                 label = { Text("Descripción") },
-                isError = estado.descripcionError != null,
+                enabled = puedeEditarDatos,
+                isError = estado.errores.descripcion != null,
 
                 trailingIcon = {
-                    if (estado.descripcionError != null) {
+                    if (estado.errores.descripcion != null) {
                         Icon(
                             Icons.Filled.ErrorOutline,
                             contentDescription = "Error"
                         )
                     }
                 },
-                supportingText = { Text(estado.descripcionError ?: "") },
+                supportingText = { Text(estado.errores.descripcion ?: "") },
                 modifier = Modifier.fillMaxWidth(),
                 minLines = 3
             )
@@ -449,16 +392,17 @@ fun OportunidadFormScreen(
                 value = estado.fuente,
                 onValueChange = { viewModel.onFuenteChange(it) },
                 label = { Text("Fuente de información") },
-                isError = estado.fuenteError != null,
+                enabled = puedeEditarDatos,
+                isError = estado.errores.fuente != null,
                 trailingIcon = {
-                    if (estado.nombreError != null) {
+                    if (estado.errores.fuente != null) {
                         Icon(
                             Icons.Filled.ErrorOutline,
                             contentDescription = "Error"
                         )
                     }
                 },
-                supportingText = { Text(estado.fuenteError ?: "") },
+                supportingText = { Text(estado.errores.fuente ?: "") },
                 modifier = Modifier.fillMaxWidth()
             )
 
@@ -467,6 +411,7 @@ fun OportunidadFormScreen(
                 onClick = {
                     navController.navigate("qr_scanner?destino=fuente")
                 },
+                enabled = puedeEditarDatos,
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Icon(
@@ -478,11 +423,47 @@ fun OportunidadFormScreen(
                 Text("Escanear QR como fuente")
             } // fin OutlinedButton QR
 
+            // Evento asociado (opcional)
+            SelectorEntidad(
+                etiqueta = "Evento asociado",
+                seleccionado = eventos.find { it.id == estado.eventoId },
+                opciones = eventos,
+                textoDe = { it.nombre },
+                onSeleccion = { viewModel.onEventoChange(it?.id ?: 0L) },
+                enabled = puedeEditarDatos,
+                textoVacio = "Sin evento",
+                permiteVacio = true
+            )
+
+            // Organización y contacto asociados (opcionales)
+            SelectorEntidad(
+                etiqueta = "Organización",
+                seleccionado = organizaciones.find { it.id == estado.organizacionId },
+                opciones = organizaciones,
+                textoDe = { it.nombre },
+                onSeleccion = { viewModel.onOrganizacionChange(it?.id ?: 0L) },
+                enabled = puedeEditarDatos,
+                textoVacio = "Sin organización",
+                permiteVacio = true
+            )
+
+            // Solo se ofrecen los contactos de la organización elegida
+            SelectorEntidad(
+                etiqueta = "Contacto",
+                seleccionado = contactos.find { it.id == estado.contactoId },
+                opciones = contactos.filter { it.organizacionId == estado.organizacionId },
+                textoDe = { it.nombre },
+                onSeleccion = { viewModel.onContactoChange(it?.id ?: 0L) },
+                enabled = puedeEditarDatos && estado.organizacionId != 0L,
+                textoVacio = "Sin contacto",
+                permiteVacio = true
+            )
+
             // Prioridad
             ExposedDropdownMenuBox(
                 expanded = prioridadExpandida,
                 onExpandedChange = {
-                    prioridadExpandida = !prioridadExpandida
+                    if (puedeEditarDatos) prioridadExpandida = !prioridadExpandida
                 }
             ) {
                 OutlinedTextField(
@@ -490,14 +471,15 @@ fun OportunidadFormScreen(
                     onValueChange = {},
                     readOnly = true,
                     label = { Text("Prioridad") },
+                    enabled = puedeEditarDatos,
                     trailingIcon = {
                         ExposedDropdownMenuDefaults.TrailingIcon(
                             expanded = prioridadExpandida
                         )
                     },
-                    isError = estado.prioridadError != null,
+                    isError = estado.errores.prioridad != null,
                     supportingText = {
-                        Text(estado.prioridadError ?: "")
+                        Text(estado.errores.prioridad ?: "")
                     },
                     modifier = Modifier
                         .menuAnchor()
@@ -526,7 +508,7 @@ fun OportunidadFormScreen(
             ExposedDropdownMenuBox(
                 expanded = potencialExpandido,
                 onExpandedChange = {
-                    potencialExpandido = !potencialExpandido
+                    if (puedeEditarDatos) potencialExpandido = !potencialExpandido
                 }
             ) {
                 OutlinedTextField(
@@ -534,14 +516,15 @@ fun OportunidadFormScreen(
                     onValueChange = {},
                     readOnly = true,
                     label = { Text("Potencial comercial") },
+                    enabled = puedeEditarDatos,
                     trailingIcon = {
                         ExposedDropdownMenuDefaults.TrailingIcon(
                             expanded = potencialExpandido
                         )
                     },
-                    isError = estado.potencialError != null,
+                    isError = estado.errores.potencial != null,
                     supportingText = {
-                        Text(estado.potencialError ?: "")
+                        Text(estado.errores.potencial ?: "")
                     },
                     modifier = Modifier
                         .menuAnchor()
@@ -570,7 +553,7 @@ fun OportunidadFormScreen(
             ExposedDropdownMenuBox(
                 expanded = estadoExpandido,
                 onExpandedChange = {
-                    estadoExpandido = !estadoExpandido
+                    if (puedeCambiarEstado) estadoExpandido = !estadoExpandido
                 }
             ) {
                 OutlinedTextField(
@@ -578,6 +561,7 @@ fun OportunidadFormScreen(
                     onValueChange = {},
                     readOnly = true,
                     label = { Text("Estado de gestión") },
+                    enabled = puedeCambiarEstado,
                     trailingIcon = {
                         ExposedDropdownMenuDefaults.TrailingIcon(
                             expanded = estadoExpandido
@@ -611,9 +595,65 @@ fun OportunidadFormScreen(
                 value = estado.observaciones,
                 onValueChange = { viewModel.onObservacionesChange(it) },
                 label = { Text("Observaciones") },
+                enabled = puedeEditarObservaciones,
                 modifier = Modifier.fillMaxWidth(),
                 minLines = 2
             )
+
+            // EN PAUSA (perfil Marketing): campo de materiales
+            // OutlinedTextField(
+            //     value = estado.materiales,
+            //     onValueChange = { viewModel.onMaterialesChange(it) },
+            //     label = { Text("Materiales (Marketing)") },
+            //     enabled = puedeEditarMateriales,
+            //     modifier = Modifier.fillMaxWidth(),
+            //     minLines = 2
+            // )
+
+            // Responsable: lo asigna el supervisor; los demas perfiles solo lo ven
+            val ejecutivosActivos = usuarios.filter {
+                it.activo && Perfil.desdeEtiqueta(it.perfil) == Perfil.EJECUTIVO
+            }
+            val nombreResponsable =
+                usuarios.find { it.id == estado.responsableId }?.nombre ?: "Sin asignar"
+
+            ExposedDropdownMenuBox(
+                expanded = responsableExpandido && puedeAsignarResponsable,
+                onExpandedChange = {
+                    if (puedeAsignarResponsable) responsableExpandido = !responsableExpandido
+                }
+            ) {
+                OutlinedTextField(
+                    value = nombreResponsable,
+                    onValueChange = {},
+                    readOnly = true,
+                    enabled = puedeAsignarResponsable,
+                    label = { Text("Responsable") },
+                    trailingIcon = {
+                        ExposedDropdownMenuDefaults.TrailingIcon(
+                            expanded = responsableExpandido
+                        )
+                    },
+                    modifier = Modifier
+                        .menuAnchor()
+                        .fillMaxWidth()
+                )
+
+                ExposedDropdownMenu(
+                    expanded = responsableExpandido && puedeAsignarResponsable,
+                    onDismissRequest = { responsableExpandido = false }
+                ) {
+                    ejecutivosActivos.forEach { ejecutivo ->
+                        DropdownMenuItem(
+                            text = { Text(ejecutivo.nombre) },
+                            onClick = {
+                                viewModel.onResponsableChange(ejecutivo.id)
+                                responsableExpandido = false
+                            }
+                        )
+                    }
+                }
+            } // fin Responsable
 
             Spacer(modifier = Modifier.height(8.dp))
 
@@ -647,6 +687,7 @@ fun OportunidadFormScreen(
                         )
                     }
                 },
+                enabled = puedeEditarDatos,
                 modifier = Modifier.fillMaxWidth()
             ) {
 
@@ -663,6 +704,15 @@ fun OportunidadFormScreen(
                         "Actualizar ubicación"
                     else
                         "Obtener ubicación"
+                )
+            }
+
+            // Aviso de ubicación (permiso denegado, ubicación apagada, sin señal)
+            estado.errores.ubicacion?.let {
+                Text(
+                    text = it,
+                    color = MaterialTheme.colorScheme.error,
+                    style = MaterialTheme.typography.bodySmall
                 )
             }
 
@@ -707,6 +757,7 @@ fun OportunidadFormScreen(
                         permisoCamaraLauncher.launch(Manifest.permission.CAMERA)
                     }
                 },
+                enabled = puedeEditarDatos,
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Icon(
@@ -717,6 +768,15 @@ fun OportunidadFormScreen(
                 Spacer(modifier = Modifier.width(8.dp))
                 Text("Tomar foto")
             } // fin OutlinedButton camara
+
+            // Aviso de cámara (permiso denegado)
+            estado.errores.foto?.let {
+                Text(
+                    text = it,
+                    color = MaterialTheme.colorScheme.error,
+                    style = MaterialTheme.typography.bodySmall
+                )
+            }
 
             // Mostrar foto con animación si existe
             AnimatedVisibility(

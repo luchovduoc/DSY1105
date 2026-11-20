@@ -13,6 +13,7 @@ data class OrganizacionEntity(
     val region: String,
     val sitioWeb: String = "",
     val publicoAsociado: String = "",
-    val observaciones: String = ""
+    val observaciones: String = "",
+    val creadoPorId: Long = 0 // quien lo creo (0 = desconocido: solo el supervisor puede eliminarlo)
 ) // fin data class OrganizacionEntity
 

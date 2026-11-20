@@ -2,14 +2,41 @@ package com.duoc.dsy1105.ui.screens
 
 import android.graphics.Bitmap
 import android.graphics.Color
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.TopAppBar
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.asImageBitmap
@@ -18,7 +45,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
-import com.duoc.dsy1105.database.OportunidadEntity
+import com.duoc.dsy1105.viewmodel.LoginViewModel
 import com.duoc.dsy1105.viewmodel.OportunidadViewModel
 import com.google.zxing.BarcodeFormat
 import com.google.zxing.qrcode.QRCodeWriter
@@ -27,11 +54,56 @@ import com.google.zxing.qrcode.QRCodeWriter
 @Composable
 fun OportunidadDetalleScreen(
     navController: NavController,
+    loginViewModel: LoginViewModel,
     oportunidadId: Long
 ) {
     val viewModel: OportunidadViewModel = viewModel()
-    val oportunidades by viewModel.oportunidades.collectAsState()
+    val sesion by loginViewModel.usuario.collectAsState()
+    val perfil = sesion?.perfil
+    val usuarioId = sesion?.id?.toLong() ?: 0L
+    val oportunidades by remember(sesion) { viewModel.oportunidadesVisibles(sesion) }
+        .collectAsState(initial = emptyList())
+    val usuarios by viewModel.usuarios.collectAsState()
+    val eventos by viewModel.eventos.collectAsState()
+    val organizaciones by viewModel.organizaciones.collectAsState()
+    val contactos by viewModel.contactos.collectAsState()
+    val seguimientos by remember(oportunidadId) { viewModel.seguimientosDe(oportunidadId) }
+        .collectAsState(initial = emptyList())
     val oportunidad = oportunidades.find { it.id == oportunidadId }
+
+    // Permisos segun el perfil (el repositorio los vuelve a validar al guardar o eliminar)
+    val puedeEliminar = oportunidad != null &&
+        perfil?.puedeEliminarOportunidad(oportunidad.responsableId, usuarioId) == true
+    val puedeEditar = oportunidad != null && perfil != null && (
+        perfil.puedeEditarOportunidad(oportunidad.responsableId, usuarioId) ||
+            perfil.puedeEditarObservaciones(oportunidad.estado, oportunidad.responsableId, usuarioId)
+        )
+
+    // Estado visual del dialogo (vive en la UI, no en el ViewModel)
+    var mostrarDialogo by remember { mutableStateOf(false) }
+
+    // Dialogo de confirmacion
+    if (mostrarDialogo && oportunidad != null) {
+        AlertDialog(
+            onDismissRequest = { mostrarDialogo = false },
+            title = { Text("Eliminar oportunidad") },
+            text = { Text("¿Seguro que quieres eliminar \"${oportunidad.nombre}\"? Esta acción no se puede deshacer.") },
+            confirmButton = {
+                TextButton(onClick = {
+                    sesion?.let { viewModel.eliminar(it, oportunidad) }
+                    mostrarDialogo = false
+                    navController.popBackStack()
+                }) {
+                    Text("Eliminar")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { mostrarDialogo = false }) {
+                    Text("Cancelar")
+                }
+            }
+        ) // fin AlertDialog
+    } // fin if mostrarDialogo
 
     Scaffold(
         topBar = {
@@ -43,6 +115,14 @@ fun OportunidadDetalleScreen(
                             Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = "Volver"
                         )
+                    }
+                },
+                // Boton basurero
+                actions = {
+                    if (puedeEliminar) {
+                        IconButton(onClick = { mostrarDialogo = true }) {
+                            Icon(Icons.Filled.Delete, contentDescription = "Eliminar")
+                        }
                     }
                 }
             )
@@ -80,12 +160,50 @@ fun OportunidadDetalleScreen(
                 InfoRow("Estado", oportunidad.estado)
                 InfoRow("Fuente", oportunidad.fuente)
                 InfoRow("Potencial", oportunidad.potencialComercial)
+                InfoRow(
+                    "Responsable",
+                    usuarios.find { it.id == oportunidad.responsableId }?.nombre ?: "Sin asignar"
+                )
+
+                // EN PAUSA (perfil Marketing): materiales
+                // if (oportunidad.materiales.isNotEmpty()) {
+                //     InfoRow("Materiales", oportunidad.materiales)
+                // }
+
+                // Evento asociado y su organizacion
+                val eventoAsociado = eventos.find { it.id == oportunidad.eventoId }
+                if (eventoAsociado != null) {
+                    InfoRow("Evento", "${eventoAsociado.nombre} (${rangoDeFechas(eventoAsociado)})")
+                    organizaciones.find { it.id == eventoAsociado.organizacionId }?.let {
+                        InfoRow("Organización", it.nombre)
+                    }
+                }
+
+                // Organización y contacto asociados directamente a la oportunidad
+                organizaciones.find { it.id == oportunidad.organizacionId }?.let {
+                    InfoRow("Organización asociada", it.nombre)
+                }
+                contactos.find { it.id == oportunidad.contactoId }?.let {
+                    InfoRow("Contacto", it.nombre)
+                }
+
+                if (oportunidad.fechaDeteccion.isNotEmpty()) {
+                    InfoRow("Fecha de detección", oportunidad.fechaDeteccion)
+                }
 
                 if (oportunidad.observaciones.isNotEmpty()) {
                     InfoRow("Observaciones", oportunidad.observaciones)
                 }
 
-// Ubicacion registrada
+                // Trazabilidad: quien hizo el ultimo cambio
+                if (oportunidad.modificadoPor.isNotEmpty()) {
+                    InfoRow(
+                        "Última modificación",
+                        "${oportunidad.modificadoPor} · ${oportunidad.fechaModificacion}"
+                    )
+                }
+
+                // Ubicacion registrada
                 if (oportunidad.latitud != null && oportunidad.longitud != null) {
 
                     Spacer(modifier = Modifier.height(4.dp))
@@ -126,6 +244,21 @@ fun OportunidadDetalleScreen(
 
                 HorizontalDivider()
 
+                // Historial de gestiones (acciones del equipo y cambios de estado)
+                HistorialOportunidad(seguimientos)
+
+                // Registrar una accion: solo quien gestiona la oportunidad
+                if (perfil?.puedeRegistrarSeguimiento(oportunidad.responsableId, usuarioId) == true) {
+                    OutlinedButton(
+                        onClick = { navController.navigate("seguimiento_form/${oportunidad.id}") },
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text("Registrar seguimiento")
+                    }
+                }
+
+                HorizontalDivider()
+
                 // QR generado
                 Text(
                     text = "Código QR",
@@ -151,15 +284,17 @@ fun OportunidadDetalleScreen(
 
                 Spacer(modifier = Modifier.height(8.dp))
 
-                // Boton editar
-                Button(
-                    onClick = {
-                        navController.navigate("oportunidad_form?id=${oportunidad.id}")
-                    },
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text("Editar oportunidad")
-                } // fin Button editar
+                // Boton editar: solo si el perfil puede modificar algo de esta oportunidad
+                if (puedeEditar) {
+                    Button(
+                        onClick = {
+                            navController.navigate("oportunidad_form?id=${oportunidad.id}")
+                        },
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text("Editar oportunidad")
+                    } // fin Button editar
+                }
 
             } // fin Column
         } // fin else
