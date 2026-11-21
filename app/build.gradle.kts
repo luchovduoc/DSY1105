@@ -1,9 +1,20 @@
+import java.util.Properties
+import java.io.FileInputStream
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
-    alias(libs.plugins.ksp) //agregada igual que profesor
+    alias(libs.plugins.ksp)
 }
 
+val keystorePropertiesFile = rootProject.file("keystore.properties")
+val keystoreProperties = Properties()
+
+if (keystorePropertiesFile.exists()) {
+    FileInputStream(keystorePropertiesFile).use {
+        keystoreProperties.load(it)
+    }
+}
 android {
     namespace = "com.duoc.dsy1105"
     compileSdk {
@@ -21,8 +32,21 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
+    signingConfigs {
+        if (keystorePropertiesFile.exists()) {
+            create("release") {
+                storeFile = file(keystoreProperties["storeFile"] as String)
+                storePassword = keystoreProperties["storePassword"] as String
+                keyAlias = keystoreProperties["keyAlias"] as String
+                keyPassword = keystoreProperties["keyPassword"] as String
+            }
+        }
+    }
     buildTypes {
         release {
+            if (keystorePropertiesFile.exists()) {
+                signingConfig = signingConfigs.getByName("release")
+            }
             isMinifyEnabled = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
@@ -36,6 +60,13 @@ android {
     }
     buildFeatures {
         compose = true
+    }
+    // mockk-android trae JUnit 5, que repite estos archivos (igual que el ejemplo del profesor)
+    packaging {
+        resources {
+            excludes += "/META-INF/LICENSE.md"
+            excludes += "/META-INF/LICENSE-notice.md"
+        }
     }
 }
 
@@ -61,6 +92,10 @@ dependencies {
     // Coil - muestra imágenes desde URI en Compose
     implementation("io.coil-kt:coil-compose:2.6.0")
 
+    // Retrofit y Gson Converter (los mismos del ejemplo del profesor)
+    implementation("com.squareup.retrofit2:retrofit:2.11.0")
+    implementation("com.squareup.retrofit2:converter-gson:2.11.0")
+
     // CameraX
     val camerax_version = "1.4.2"
     implementation("androidx.camera:camera-core:$camerax_version")
@@ -77,11 +112,23 @@ dependencies {
     // LiveData para Compose
     implementation("androidx.compose.runtime:runtime-livedata:1.5.4")
 
-    testImplementation(libs.junit)
+    // Pruebas unitarias (guia 15): Kotest + MockK sobre JUnit 5
+    testImplementation("io.kotest:kotest-runner-junit5:5.8.0")
+    testImplementation("io.kotest:kotest-assertions-core:5.8.0")
+    testImplementation("org.junit.jupiter:junit-jupiter:5.10.0")
+    testImplementation("io.mockk:mockk:1.13.10")
+    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.8.0")
+
+    androidTestImplementation("io.mockk:mockk-android:1.13.10")
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)
     debugImplementation(libs.androidx.compose.ui.tooling)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
+}
+
+// Obligatorio para usar JUnit 5 en las pruebas unitarias
+tasks.withType<Test> {
+    useJUnitPlatform()
 }

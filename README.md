@@ -69,6 +69,49 @@ La aplicación utiliza una arquitectura **MVVM**, persistencia local mediante **
 - Lógica de validación centralizada en el ViewModel.
 - Persistencia local mediante Room.
 
+### Perfiles y permisos
+
+La aplicación tiene tres perfiles, tomados de la lámina del profesor: **Ejecutivo Comercial**, **Supervisor Comercial** y
+**Gestión de Activaciones** (el perfil Marketing del diseño anterior quedó en pausa).
+
+- Toda cuenta nueva se crea como Ejecutivo. Solo un supervisor cambia perfiles y activa o desactiva cuentas.
+- Cada perfil ve y puede hacer cosas distintas sobre las mismas pantallas; los permisos se validan en la
+  pantalla y también en los repositorios.
+- Detalle de permisos en [CONVENCIONES.md](CONVENCIONES.md).
+
+### Activaciones, resultados y catálogo de eventos
+
+- **Activaciones:** las crea Gestión de Activaciones sobre oportunidades confirmadas y asigna el responsable.
+- **Resultados:** Gestión de Activaciones registra el resultado de cada activación; el supervisor los consulta.
+- **Catálogo de eventos:** el ejecutivo importa un evento de la API como oportunidad Pendiente.
+
+### Módulo de Eventos
+
+- Registro de eventos con tipo, fechas (con calendario), horario, comuna, región, organización responsable,
+  público esperado y condiciones de participación.
+- Una oportunidad se asocia a un evento y, por el evento, a su organización.
+
+### Módulo de Contactos
+
+- Contactos ficticios asociados a una organización, con cargo, área, medio de contacto preferente y estado.
+- La fecha del último contacto se actualiza con los seguimientos.
+
+### Seguimiento e historial
+
+- Registro de acciones sobre una oportunidad (tipo de acción, resultado, próxima acción y fecha).
+- Historial de gestiones en el detalle de la oportunidad, con registros automáticos de la creación y de
+  cada cambio de estado.
+
+### Alertas
+
+- Avisos internos: seguimientos atrasados y próximos, eventos próximos, propuestas sin respuesta,
+  oportunidades sin contacto, información incompleta y oportunidades sin responsable.
+
+### Búsqueda y filtros
+
+- Oportunidades: texto, estado, tipo, prioridad, región y responsable.
+- Eventos: texto, tipo, región y fecha. Contactos: texto, área y estado. Organizaciones: texto.
+
 ## Recursos nativos del dispositivo
 
 ### Cámara
@@ -123,7 +166,10 @@ Actualmente se almacenan, entre otros:
 - Coordenadas de ubicación.
 - Organizaciones.
 
-También se implementaron migraciones de base de datos para conservar información existente al modificar el esquema.
+- Activaciones y resultados de las activaciones.
+
+La base de datos se rehízo desde cero (versión 1, sin migraciones) mientras la aplicación no se publique. Si cambia el
+esquema, hay que borrar los datos de la app en el emulador.
 
 ## Arquitectura
 
@@ -209,6 +255,7 @@ Para probar la ubicación:
 
 - Todos los datos utilizados durante las pruebas deben ser ficticios.
 - La aplicación utiliza persistencia local mediante Room.
-- No se requiere una base de datos remota para utilizar las funciones actuales.
+- No se requiere una base de datos remota para usar la app. El catálogo de eventos usa una API REST (Retrofit) del
+  backend en `backend/`; si el servidor está apagado, la pantalla muestra un aviso y el resto de la app funciona igual.
 - La ubicación se obtiene únicamente cuando el usuario solicita registrarla.
 - No se realiza seguimiento permanente de la ubicación del usuario.

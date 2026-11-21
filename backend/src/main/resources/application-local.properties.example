@@ -1,0 +1,3 @@
+# Copia este archivo como application-local.properties y reemplaza los valores.
+# application-local.properties NO se sube a Git: ahí van tus credenciales.
+spring.data.mongodb.uri=mongodb+srv://USUARIO:CLAVE@TU-CLUSTER.mongodb.net/dsy1105

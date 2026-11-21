@@ -1,13 +1,6 @@
 package com.duoc.dsy1105.ui.screens
 
 
-import androidx.compose.material3.ExposedDropdownMenuBox
-import androidx.compose.material3.ExposedDropdownMenuDefaults
-import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -37,6 +30,9 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.compose.material.icons.filled.ErrorOutline
+import androidx.compose.material3.MaterialTheme
+import com.duoc.dsy1105.viewmodel.LoginViewModel
+import com.duoc.dsy1105.ui.components.SelectorRegionComuna
 import com.duoc.dsy1105.viewmodel.OrganizacionViewModel
 
 
@@ -44,106 +40,42 @@ import com.duoc.dsy1105.viewmodel.OrganizacionViewModel
 @Composable
 fun OrganizacionFormScreen(
     navController: NavController,
-    organizacionId: Long? = null // AGREGADO
+    loginViewModel: LoginViewModel,
+    organizacionId: Long? = null
 ) {
 
     val viewModel: OrganizacionViewModel = viewModel()
-    val esEdicion = organizacionId != null // AGREGADO
+    val esEdicion = organizacionId != null
 
-// AGREGADO: si es edicion, carga los datos una sola vez
+    // Permiso segun el perfil (el repositorio lo vuelve a validar al guardar)
+    val sesion by loginViewModel.usuario.collectAsState()
+    val perfil = sesion?.perfil
+    val puedeGuardar = perfil != null && (
+        if (esEdicion) perfil.puedeEditarOrganizaciones else perfil.puedeCrearOrganizaciones
+        )
+
+// Si es edicion, carga los datos una sola vez
     LaunchedEffect(organizacionId) {
         if (organizacionId != null) {
             viewModel.cargarOrganizacion(organizacionId)
         }
     }
-    val nombre by viewModel.nombre.collectAsState()
-    val tipoOrganizacion by viewModel.tipoOrganizacion.collectAsState()
-    val rubro by viewModel.rubro.collectAsState()
-    val comuna by viewModel.comuna.collectAsState()
-    val region by viewModel.region.collectAsState()
-    val observaciones by viewModel.observaciones.collectAsState()
-    val guardadoExitosamente by viewModel.guardadoExitosamente.collectAsState()
-    var regionExpandida by remember { mutableStateOf(false) }
-    var comunaExpandida by remember { mutableStateOf(false) }
-    val nombreError by viewModel.nombreError.collectAsState()
-    val tipoError by viewModel.tipoError.collectAsState()
-    val rubroError by viewModel.rubroError.collectAsState()
-    val regionError by viewModel.regionError.collectAsState()
-    val comunaError by viewModel.comunaError.collectAsState()
+    // Estado único del formulario: valores y errores vienen del mismo objeto
+    val estado by viewModel.estado.collectAsState()
+    val nombre = estado.nombre
+    val tipoOrganizacion = estado.tipoOrganizacion
+    val rubro = estado.rubro
+    val comuna = estado.comuna
+    val region = estado.region
+    val observaciones = estado.observaciones
+    val guardadoExitosamente = estado.guardadoExitosamente
+    val nombreError = estado.errores.nombre
+    val tipoError = estado.errores.tipo
+    val rubroError = estado.errores.rubro
+    val regionError = estado.errores.region
+    val comunaError = estado.errores.comuna
 
-    val regiones = listOf(
-        "Arica y Parinacota",
-        "Tarapacá",
-        "Antofagasta",
-        "Atacama",
-        "Coquimbo",
-        "Valparaíso",
-        "Región Metropolitana de Santiago",
-        "Libertador General Bernardo O'Higgins",
-        "Maule",
-        "Ñuble",
-        "Biobío",
-        "La Araucanía",
-        "Los Ríos",
-        "Los Lagos",
-        "Aysén del General Carlos Ibáñez del Campo",
-        "Magallanes y de la Antártica Chilena"
-    )
 
-    val comunasMetropolitana = listOf(
-        "Alhué",
-        "Buin",
-        "Calera de Tango",
-        "Cerrillos",
-        "Cerro Navia",
-        "Colina",
-        "Conchalí",
-        "Curacaví",
-        "El Bosque",
-        "El Monte",
-        "Estación Central",
-        "Huechuraba",
-        "Independencia",
-        "Isla de Maipo",
-        "La Cisterna",
-        "La Florida",
-        "La Granja",
-        "La Pintana",
-        "La Reina",
-        "Lampa",
-        "Las Condes",
-        "Lo Barnechea",
-        "Lo Espejo",
-        "Lo Prado",
-        "Macul",
-        "Maipú",
-        "María Pinto",
-        "Melipilla",
-        "Ñuñoa",
-        "Padre Hurtado",
-        "Paine",
-        "Pedro Aguirre Cerda",
-        "Peñaflor",
-        "Peñalolén",
-        "Pirque",
-        "Providencia",
-        "Pudahuel",
-        "Puente Alto",
-        "Quilicura",
-        "Quinta Normal",
-        "Recoleta",
-        "Renca",
-        "San Bernardo",
-        "San Joaquín",
-        "San José de Maipo",
-        "San Miguel",
-        "San Pedro",
-        "San Ramón",
-        "Santiago",
-        "Talagante",
-        "Tiltil",
-        "Vitacura"
-    )
 
     LaunchedEffect(guardadoExitosamente) {
         if (guardadoExitosamente) {
@@ -241,108 +173,14 @@ fun OrganizacionFormScreen(
                 modifier = Modifier.fillMaxWidth()
             )
 
-            ExposedDropdownMenuBox(
-                expanded = regionExpandida,
-                onExpandedChange = { regionExpandida = !regionExpandida }
-            ) {
-                OutlinedTextField(
-                    value = region,
-                    onValueChange = {},
-                    readOnly = true,
-                    label = { Text("Región") },
-                    isError = regionError != null,
-                    supportingText = {
-                        regionError?.let {
-                            Text(it)
-                        }
-                    },
-                    trailingIcon = {
-                        ExposedDropdownMenuDefaults.TrailingIcon(
-                            expanded = regionExpandida
-                        )
-                    },
-                    modifier = Modifier
-                        .menuAnchor()
-                        .fillMaxWidth()
-                )
-
-
-                ExposedDropdownMenu(
-                    expanded = regionExpandida,
-                    onDismissRequest = { regionExpandida = false }
-                ) {
-                    regiones.forEach { opcion ->
-                        DropdownMenuItem(
-                            text = { Text(opcion) },
-                            onClick = {
-                                viewModel.onRegionChange(opcion)
-                                regionExpandida = false
-                            }
-                        )
-                    }
-                }
-            }
-
-            if (region == "Región Metropolitana de Santiago") {
-
-                ExposedDropdownMenuBox(
-                    expanded = comunaExpandida,
-                    onExpandedChange = { comunaExpandida = !comunaExpandida }
-                ) {
-                    OutlinedTextField(
-                        value = comuna,
-                        onValueChange = {},
-                        readOnly = true,
-                        label = { Text("Comuna") },
-                        trailingIcon = {
-                            ExposedDropdownMenuDefaults.TrailingIcon(
-                                expanded = comunaExpandida
-                            )
-                        },
-                        modifier = Modifier
-                            .menuAnchor()
-                            .fillMaxWidth()
-                    )
-
-                    ExposedDropdownMenu(
-                        expanded = comunaExpandida,
-                        onDismissRequest = { comunaExpandida = false }
-                    ) {
-                        comunasMetropolitana.forEach { opcion ->
-                            DropdownMenuItem(
-                                text = { Text(opcion) },
-                                onClick = {
-                                    viewModel.onComunaChange(opcion)
-                                    comunaExpandida = false
-                                }
-                            )
-                        }
-                    }
-                }
-
-            } else if (region.isNotBlank()) {
-
-                OutlinedTextField(
-                    value = comuna,
-                    onValueChange = { viewModel.onComunaChange(it) },
-                    label = { Text("Comuna") },
-                    isError = comunaError != null,
-                    supportingText = {
-                        comunaError?.let {
-                            Text(it)
-                        }
-                    },
-                    trailingIcon = {
-                        if (comunaError != null) {
-                            Icon(
-                                Icons.Filled.ErrorOutline,
-                                contentDescription = "Error"
-                            )
-                        }
-                    },
-                    modifier = Modifier.fillMaxWidth()
-                )
-            }
+            SelectorRegionComuna(
+                region = region,
+                comuna = comuna,
+                onRegionChange = { viewModel.onRegionChange(it) },
+                onComunaChange = { viewModel.onComunaChange(it) },
+                errorRegion = regionError,
+                errorComuna = comunaError
+            )
 
             OutlinedTextField(
                 value = observaciones,
@@ -354,11 +192,31 @@ fun OrganizacionFormScreen(
 
             Spacer(modifier = Modifier.height(8.dp))
 
+            // Error general (por ejemplo, falta de permiso al guardar)
+            estado.error?.let {
+                Text(
+                    text = it,
+                    color = MaterialTheme.colorScheme.error,
+                    style = MaterialTheme.typography.bodySmall
+                )
+            }
+
+            if (!puedeGuardar) {
+                Text(
+                    text = "Solo lectura: tu perfil no puede modificar organizaciones",
+                    color = MaterialTheme.colorScheme.error,
+                    style = MaterialTheme.typography.bodySmall
+                )
+            }
+
             Button(
                 onClick = {
-                    if (organizacionId != null) viewModel.actualizar(organizacionId)
-                    else viewModel.guardar()
+                    sesion?.let { usuario ->
+                        if (organizacionId != null) viewModel.actualizar(organizacionId, usuario)
+                        else viewModel.guardar(usuario)
+                    }
                 },
+                enabled = puedeGuardar,
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Text(if (esEdicion) "Actualizar" else "Guardar")

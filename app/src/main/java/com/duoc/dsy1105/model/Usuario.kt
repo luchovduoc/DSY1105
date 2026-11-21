@@ -4,7 +4,7 @@ data class Usuario(
     val id: Int,
     val nombre: String,
     val email: String,
-    val perfil: String,
+    val perfil: Perfil,
     val area: String,
-    val estado: Boolean
+    val estado: Boolean // true = cuenta activa
 )

@@ -3,175 +3,67 @@ package com.duoc.dsy1105.viewmodel
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import com.duoc.dsy1105.model.LoginErrores
+import com.duoc.dsy1105.model.LoginUiState
+import com.duoc.dsy1105.model.RegistroErrores
+import com.duoc.dsy1105.model.RegistroUiState
 import com.duoc.dsy1105.model.Usuario
 import com.duoc.dsy1105.repository.AuthRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 class LoginViewModel(app: Application) : AndroidViewModel(app) {
 
     private val authRepository = AuthRepository(app)
 
+    init {
+        // Garantiza que existan los usuarios de demostración (datos ficticios)
+        viewModelScope.launch { authRepository.asegurarUsuariosDemo() }
+    }
+
+    // Usuario con sesión iniciada (null = sin sesión)
     private val _usuario = MutableStateFlow<Usuario?>(null)
     val usuario: StateFlow<Usuario?> = _usuario
 
-    private val _error = MutableStateFlow<String?>(null)
-    val error: StateFlow<String?> = _error
+    // Estado de la pantalla de login (valores + errores)
+    private val _loginEstado = MutableStateFlow(LoginUiState())
+    val loginEstado: StateFlow<LoginUiState> = _loginEstado
 
-    private val _email = MutableStateFlow("")
-    val email: StateFlow<String> = _email
+    // Estado de la pantalla de registro (valores + errores)
+    private val _registroEstado = MutableStateFlow(RegistroUiState())
+    val registroEstado: StateFlow<RegistroUiState> = _registroEstado
 
-    private val _password = MutableStateFlow("")
-    val password: StateFlow<String> = _password
+    // ---------- Login ----------
 
-    private val _emailError = MutableStateFlow<String?>(null)
-    val emailError: StateFlow<String?> = _emailError
+    // Cada cambio actualiza el valor y limpia el error de ese campo
+    fun onEmailChange(v: String) =
+        _loginEstado.update {
+            it.copy(email = v, errores = it.errores.copy(email = null), error = null)
+        }
 
-    private val _passwordError = MutableStateFlow<String?>(null)
-    val passwordError: StateFlow<String?> = _passwordError
-
-    private val _registroExitoso = MutableStateFlow(false)
-    val registroExitoso: StateFlow<Boolean> = _registroExitoso
-
-    private val _registroNombre = MutableStateFlow("")
-    val registroNombre: StateFlow<String> = _registroNombre
-
-    private val _registroEmail = MutableStateFlow("")
-    val registroEmail: StateFlow<String> = _registroEmail
-
-    private val _registroClave = MutableStateFlow("")
-    val registroClave: StateFlow<String> = _registroClave
-
-    private val _registroConfirmarClave = MutableStateFlow("")
-    val registroConfirmarClave: StateFlow<String> = _registroConfirmarClave
-
-    private val _registroNombreError = MutableStateFlow<String?>(null)
-    val registroNombreError: StateFlow<String?> = _registroNombreError
-
-    private val _registroEmailError = MutableStateFlow<String?>(null)
-    val registroEmailError: StateFlow<String?> = _registroEmailError
-
-    private val _registroClaveError = MutableStateFlow<String?>(null)
-    val registroClaveError: StateFlow<String?> = _registroClaveError
-
-    private val _registroConfirmarError = MutableStateFlow<String?>(null)
-    val registroConfirmarError: StateFlow<String?> = _registroConfirmarError
-
-    private val _registroPerfil = MutableStateFlow("") // AGREGADO
-    val registroPerfil: StateFlow<String> = _registroPerfil
-
-    private val _registroPerfilError = MutableStateFlow<String?>(null) // AGREGADO
-    val registroPerfilError: StateFlow<String?> = _registroPerfilError
-
-    fun onEmailChange(v: String) {
-        _email.value = v
-        _emailError.value = null
-        _error.value = null
-    }
-
-    fun onPasswordChange(v: String) {
-        _password.value = v
-        _passwordError.value = null
-        _error.value = null
-    }
-
-    fun onRegistroNombreChange(v: String) {
-        _registroNombre.value = v
-        _registroNombreError.value = null
-        _error.value = null
-    }
-
-    fun onRegistroEmailChange(v: String) {
-        _registroEmail.value = v
-        _registroEmailError.value = null
-        _error.value = null
-    }
-
-    fun onRegistroClaveChange(v: String) {
-        _registroClave.value = v
-        _registroClaveError.value = null
-        _registroConfirmarError.value = null
-        _error.value = null
-    }
-
-    fun onRegistroConfirmarClaveChange(v: String) {
-        _registroConfirmarClave.value = v
-        _registroConfirmarError.value = null
-        _error.value = null
-    }
-
-    fun onRegistroPerfilChange(v: String) { // AGREGADO
-        _registroPerfil.value = v
-        _registroPerfilError.value = null
-        _error.value = null
-    }
+    fun onPasswordChange(v: String) =
+        _loginEstado.update {
+            it.copy(password = v, errores = it.errores.copy(password = null), error = null)
+        }
 
     private fun validarLogin(): Boolean {
+        val a = _loginEstado.value
 
-        var valido = true
+        val errores = LoginErrores(
+            email = when {
+                a.email.isBlank() -> "El email es obligatorio"
+                !android.util.Patterns.EMAIL_ADDRESS.matcher(a.email).matches() ->
+                    "Ingresa un email válido"
+                else -> null
+            },
+            password = if (a.password.isBlank()) "La contraseña es obligatoria" else null
+        )
+        _loginEstado.update { it.copy(errores = errores) }
 
-        if (_email.value.isBlank()) {
-            _emailError.value = "El email es obligatorio"
-            valido = false
-        } else if (
-            !android.util.Patterns.EMAIL_ADDRESS.matcher(_email.value).matches()
-        ) {
-            _emailError.value = "Ingresa un email válido"
-            valido = false
-        }
-
-        if (_password.value.isBlank()) {
-            _passwordError.value = "La contraseña es obligatoria"
-            valido = false
-        }
-
-        return valido
-    }
-
-    private fun validarRegistro(): Boolean {
-
-        var valido = true
-
-        if (_registroNombre.value.isBlank()) {
-            _registroNombreError.value = "El nombre es obligatorio"
-            valido = false
-        }
-
-        if (_registroEmail.value.isBlank()) {
-            _registroEmailError.value = "El email es obligatorio"
-            valido = false
-        } else if (
-            !android.util.Patterns.EMAIL_ADDRESS
-                .matcher(_registroEmail.value)
-                .matches()
-        ) {
-            _registroEmailError.value = "Ingresa un email válido"
-            valido = false
-        }
-
-        if (_registroClave.value.isBlank()) {
-            _registroClaveError.value = "La contraseña es obligatoria"
-            valido = false
-        }
-
-        if (_registroConfirmarClave.value.isBlank()) {
-            _registroConfirmarError.value = "Confirma la contraseña"
-            valido = false
-        } else if (
-            _registroClave.value != _registroConfirmarClave.value
-        ) {
-            _registroConfirmarError.value = "Las contraseñas no coinciden"
-            valido = false
-        }
-
-        if (_registroPerfil.value.isBlank()) { // AGREGADO
-            _registroPerfilError.value = "Selecciona un perfil"
-            valido = false
-        }
-
-        return valido
-    }
+        return errores == LoginErrores()
+    } // fin validarLogin
 
     // Login contra Room
     fun login() {
@@ -179,70 +71,91 @@ class LoginViewModel(app: Application) : AndroidViewModel(app) {
         if (!validarLogin()) return
 
         viewModelScope.launch {
-            val resultado = authRepository.login(
-                _email.value,
-                _password.value
-            )
+            val a = _loginEstado.value
+            val resultado = authRepository.login(a.email, a.password)
 
-            if (resultado != null) {
-                _usuario.value = resultado
-                _error.value = null
-            } else {
-                _usuario.value = null
-                _error.value = "Email o contraseña incorrectos"
+            when {
+                resultado == null -> {
+                    _usuario.value = null
+                    _loginEstado.update { it.copy(error = "Email o contraseña incorrectos") }
+                }
+                !resultado.estado -> {
+                    _usuario.value = null
+                    _loginEstado.update {
+                        it.copy(error = "Tu cuenta está desactivada. Contacta a un supervisor.")
+                    }
+                }
+                else -> {
+                    _usuario.value = resultado
+                    _loginEstado.update { it.copy(error = null) }
+                }
             }
         } // fin launch
     } // fin login
 
-    // Registrar nuevo usuario
-    fun registrar(
-        nombre: String,
-        email: String,
-        clave: String
-    ) {
-        viewModelScope.launch {
-            val exito = authRepository.registrar(
-                nombre = nombre,
-                email = email,
-                clave = clave
-            )
-
-            if (exito) {
-                _registroExitoso.value = true
-                _error.value = null
-            } else {
-                _error.value = "Este email ya está registrado"
-            }
-        } // fin launch
-    } // fin registrar
-
     // Cerrar sesion
     fun cerrarSesion() {
         _usuario.value = null
-        _error.value = null
-        _registroExitoso.value = false
-        _email.value = ""
-        _password.value = ""
-        _emailError.value = null
-        _passwordError.value = null
+        _loginEstado.value = LoginUiState()
+        _registroEstado.value = RegistroUiState()
     } // fin cerrarSesion
+
+    // ---------- Registro ----------
+
+    fun onRegistroNombreChange(v: String) =
+        _registroEstado.update {
+            it.copy(nombre = v, errores = it.errores.copy(nombre = null), error = null)
+        }
+
+    fun onRegistroEmailChange(v: String) =
+        _registroEstado.update {
+            it.copy(email = v, errores = it.errores.copy(email = null), error = null)
+        }
+
+    fun onRegistroClaveChange(v: String) =
+        _registroEstado.update {
+            it.copy(
+                clave = v,
+                errores = it.errores.copy(clave = null, confirmarClave = null),
+                error = null
+            )
+        }
+
+    fun onRegistroConfirmarClaveChange(v: String) =
+        _registroEstado.update {
+            it.copy(
+                confirmarClave = v,
+                errores = it.errores.copy(confirmarClave = null),
+                error = null
+            )
+        }
+
+    private fun validarRegistro(): Boolean {
+        val a = _registroEstado.value
+
+        val errores = RegistroErrores(
+            nombre = if (a.nombre.isBlank()) "El nombre es obligatorio" else null,
+            email = when {
+                a.email.isBlank() -> "El email es obligatorio"
+                !android.util.Patterns.EMAIL_ADDRESS.matcher(a.email).matches() ->
+                    "Ingresa un email válido"
+                else -> null
+            },
+            clave = if (a.clave.isBlank()) "La contraseña es obligatoria" else null,
+            confirmarClave = when {
+                a.confirmarClave.isBlank() -> "Confirma la contraseña"
+                a.clave != a.confirmarClave -> "Las contraseñas no coinciden"
+                else -> null
+            }
+        )
+        _registroEstado.update { it.copy(errores = errores) }
+
+        return errores == RegistroErrores()
+    } // fin validarRegistro
 
     // Limpiar estado de registro
     fun limpiarRegistro() {
-        _registroExitoso.value = false
-        _error.value = null
-
-        _registroNombre.value = ""
-        _registroEmail.value = ""
-        _registroClave.value = ""
-        _registroConfirmarClave.value = ""
-        _registroPerfil.value = "" // AGREGADO
-        _registroPerfilError.value = null // AGREGADO
-
-        _registroNombreError.value = null
-        _registroEmailError.value = null
-        _registroClaveError.value = null
-        _registroConfirmarError.value = null
+        _registroEstado.value = RegistroUiState()
     } // fin limpiarRegistro
 
     fun registrarFormulario() {
@@ -250,19 +163,19 @@ class LoginViewModel(app: Application) : AndroidViewModel(app) {
         if (!validarRegistro()) return
 
         viewModelScope.launch {
+            val a = _registroEstado.value
 
+            // El perfil no se elige: toda cuenta nueva es Ejecutivo (ver AuthRepository)
             val exito = authRepository.registrar(
-                nombre = _registroNombre.value,
-                email = _registroEmail.value,
-                clave = _registroClave.value,
-                perfil = _registroPerfil.value // AGREGADO
+                nombre = a.nombre,
+                email = a.email,
+                clave = a.clave
             )
 
             if (exito) {
-                _registroExitoso.value = true
-                _error.value = null
+                _registroEstado.update { it.copy(registroExitoso = true, error = null) }
             } else {
-                _error.value = "Este email ya está registrado"
+                _registroEstado.update { it.copy(error = "Este email ya está registrado") }
             }
         }
     } // fin registrarFormulario

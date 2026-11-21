@@ -2,7 +2,6 @@ package com.duoc.dsy1105.ui.screens
 
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.material.icons.filled.Email
-import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material3.Icon
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -20,9 +19,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -41,11 +37,14 @@ fun LoginScreen(
 ) {
 
     val usuario by viewModel.usuario.collectAsState()
-    val error by viewModel.error.collectAsState()
-    val email by viewModel.email.collectAsState()
-    val password by viewModel.password.collectAsState()
-    val emailError by viewModel.emailError.collectAsState()
-    val passwordError by viewModel.passwordError.collectAsState()
+
+    // Estado único del formulario: valores y errores vienen del mismo objeto
+    val estado by viewModel.loginEstado.collectAsState()
+    val error = estado.error
+    val email = estado.email
+    val password = estado.password
+    val emailError = estado.errores.email
+    val passwordError = estado.errores.password
 
     // Si el login fue exitoso navega al home
     LaunchedEffect(usuario) {
@@ -120,7 +119,7 @@ fun LoginScreen(
         // Muestra error si existe
         if (error != null) {
             Text(
-                text = error!!,
+                text = error,
                 color = MaterialTheme.colorScheme.error
             )
         }

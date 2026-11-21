@@ -18,14 +18,32 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.duoc.dsy1105.database.OportunidadEntity
+import com.duoc.dsy1105.model.EstadosOportunidad
+import com.duoc.dsy1105.model.Perfil
+import com.duoc.dsy1105.model.TiposEvento
+import com.duoc.dsy1105.ui.components.BarraBusqueda
+import com.duoc.dsy1105.ui.components.FilaFiltros
+import com.duoc.dsy1105.ui.components.FiltroChip
+import com.duoc.dsy1105.utils.DatosChile
+import com.duoc.dsy1105.viewmodel.LoginViewModel
 import com.duoc.dsy1105.viewmodel.OportunidadViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun OportunidadesScreen(navController: NavController) {
+fun OportunidadesScreen(
+    navController: NavController,
+    loginViewModel: LoginViewModel
+) {
 
     val viewModel: OportunidadViewModel = viewModel()
-    val oportunidades by viewModel.oportunidades.collectAsState()
+    val sesion by loginViewModel.usuario.collectAsState()
+    val perfil = sesion?.perfil
+    val filtros by viewModel.filtros.collectAsState()
+    val usuarios by viewModel.usuarios.collectAsState()
+
+    // Solo se listan las oportunidades que el perfil puede ver
+    val oportunidades by remember(sesion) { viewModel.oportunidadesVisibles(sesion) }
+        .collectAsState(initial = emptyList())
     val interactionSource = remember { MutableInteractionSource() }
     val presionado by interactionSource.collectIsPressedAsState()
 
@@ -36,20 +54,48 @@ fun OportunidadesScreen(navController: NavController) {
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = { Text("Oportunidades") },
-                navigationIcon = {
-                    IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(
-                            Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Volver"
+            Column {
+                TopAppBar(
+                    title = { Text("Oportunidades") },
+                    navigationIcon = {
+                        IconButton(onClick = { navController.popBackStack() }) {
+                            Icon(
+                                Icons.AutoMirrored.Filled.ArrowBack,
+                                contentDescription = "Volver"
+                            )
+                        }
+                    }
+                )
+                BarraBusqueda(
+                    texto = filtros.texto,
+                    onTextoChange = viewModel::onFiltroTextoChange
+                )
+                FilaFiltros {
+                    FiltroChip("Estado", filtros.estado, EstadosOportunidad.todos, viewModel::onFiltroEstadoChange)
+                    FiltroChip("Tipo", filtros.tipo, TiposEvento.todos, viewModel::onFiltroTipoChange)
+                    FiltroChip("Prioridad", filtros.prioridad, listOf("Alta", "Media", "Baja"), viewModel::onFiltroPrioridadChange)
+                    FiltroChip("Región", filtros.region, DatosChile.regiones, viewModel::onFiltroRegionChange)
+                    // Solo el supervisor ve las de todos, asi que solo a el le sirve filtrar por responsable
+                    if (perfil?.puedeAsignarResponsable == true) {
+                        FiltroChip(
+                            etiqueta = "Responsable",
+                            seleccion = usuarios.find { it.id == filtros.responsableId }?.nombre ?: "",
+                            opciones = usuarios
+                                .filter { Perfil.desdeEtiqueta(it.perfil) == Perfil.EJECUTIVO }
+                                .map { it.nombre },
+                            onSeleccion = { nombre ->
+                                viewModel.onFiltroResponsableChange(
+                                    usuarios.find { it.nombre == nombre }?.id ?: 0L
+                                )
+                            }
                         )
                     }
                 }
-            )
+            }
         }, // fin topBar
         floatingActionButton = {
-            FloatingActionButton(onClick = {
+            // Solo el ejecutivo crea oportunidades
+            if (perfil?.puedeCrearOportunidades == true) FloatingActionButton(onClick = {
                 navController.navigate("oportunidad_form")
             }) {
                 Icon(
@@ -69,7 +115,11 @@ fun OportunidadesScreen(navController: NavController) {
                 contentAlignment = Alignment.Center
             ) {
                 Text(
-                    text = "No hay oportunidades registradas",
+                    text = if (filtros.hayFiltros) "Ninguna oportunidad coincide con la búsqueda" else when (perfil) {
+                        Perfil.EJECUTIVO -> "No tienes oportunidades asignadas"
+                        Perfil.ACTIVACIONES -> "No hay oportunidades confirmadas"
+                        else -> "No hay oportunidades registradas"
+                    },
                     style = MaterialTheme.typography.bodyMedium
                 )
             } // fin Box
