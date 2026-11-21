@@ -6,7 +6,7 @@ import retrofit2.converter.gson.GsonConverterFactory
 // Singleton que contiene la configuración de Retrofit
 object RetrofitInstance {
 
-    // Se instancia el servicio de la API una sola vez
+    // Desde el emulador, 10.0.2.2 apunta al PC donde corre el backend
     val api: ApiService by lazy {
         Retrofit.Builder()
             // En dispositivo físico se usa 127.0.0.1 mediante adb reverse al puerto 8080
