@@ -9,8 +9,8 @@ object RetrofitInstance {
     // Se instancia el servicio de la API una sola vez
     val api: ApiService by lazy {
         Retrofit.Builder()
-            // Desde el emulador, 10.0.2.2 es el PC donde corre el backend (puerto 8080)
-            .baseUrl("http://10.0.2.2:8080")
+            // En dispositivo físico se usa 127.0.0.1 mediante adb reverse al puerto 8080
+            .baseUrl("http://127.0.0.1:8080/")
             .addConverterFactory(GsonConverterFactory.create()) // Conversor JSON
             .build()
             .create(ApiService::class.java) // Implementa la interfaz ApiService
