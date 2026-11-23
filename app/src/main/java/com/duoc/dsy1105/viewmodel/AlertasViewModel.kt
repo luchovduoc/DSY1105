@@ -11,11 +11,12 @@ import com.duoc.dsy1105.utils.GeneradorAlertas
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 
-class AlertasViewModel(app: Application) : AndroidViewModel(app) {
-
-    private val oportunidadRepository = OportunidadRepository(app)
-    private val seguimientoRepository = SeguimientoRepository(app)
-    private val eventoRepository = EventoRepository(app)
+class AlertasViewModel @JvmOverloads constructor(
+    app: Application,
+    private val oportunidadRepository: OportunidadRepository = OportunidadRepository(app),
+    private val seguimientoRepository: SeguimientoRepository = SeguimientoRepository(app),
+    private val eventoRepository: EventoRepository = EventoRepository(app)
+) : AndroidViewModel(app) {
 
     // Se recalcula solo cuando cambian las oportunidades, los seguimientos o los eventos
     fun alertasPara(usuario: Usuario?): Flow<AlertasUiState> =

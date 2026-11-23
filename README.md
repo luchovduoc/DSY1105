@@ -1,261 +1,735 @@
-# DSY1105 — Gestión Móvil de Oportunidades y Activaciones Corporativas
+# DSY1105 – Proyecto Semestral
 
-## Descripción del proyecto
+## Gestión móvil de oportunidades y activaciones corporativas
 
-Aplicación móvil Android desarrollada para la asignatura **Desarrollo de Aplicaciones Móviles (DSY1105)**.
+Aplicación móvil desarrollada para la asignatura **DSY1105 – Aplicaciones Móviles**.
 
-El proyecto aborda el caso de una agencia de marketing directo que necesita centralizar y gestionar oportunidades de participación en eventos corporativos, ferias empresariales y activaciones comerciales.
+El proyecto permite gestionar oportunidades comerciales, organizaciones, contactos, activaciones y resultados desde una aplicación Android desarrollada con **Kotlin, Jetpack Compose, Material 3 y arquitectura MVVM**.
 
-La aplicación utiliza una arquitectura **MVVM**, persistencia local mediante **Room** y recursos nativos del dispositivo, manteniendo separadas la interfaz, la lógica de negocio y el acceso a datos.
+Además, incorpora persistencia local mediante **Room**, consumo de un microservicio propio mediante **Retrofit + Spring Boot + MongoDB Atlas** y consumo de una **API externa de feriados de Chile**.
+
+---
 
 ## Integrantes
 
-- Luis Veas
-- María Pía Sepúlveda
+- **María Pía Sepúlveda**
+- **Luis Veas**
 
-## Tecnologías utilizadas
+---
+
+# Tecnologías utilizadas
+
+## Aplicación Android
 
 - Kotlin
-- Android Studio
 - Jetpack Compose
-- Material Design 3
-- Arquitectura MVVM
+- Material 3
+- MVVM
 - StateFlow
 - Room
-- SQLite
-- CameraX / recursos de cámara
-- ML Kit para lectura de códigos QR
-- ZXing para generación de códigos QR
-- Coil para carga de imágenes
-- Recursos de ubicación de Android
-- Git
-- GitHub
-- Trello
+- Retrofit
+- Coroutines
+- Cámara del dispositivo
+- FileProvider
+- Lectura y generación de códigos QR
 
-## Funcionalidades implementadas
+## Backend
 
-### Autenticación
+- Kotlin
+- Spring Boot 3
+- Maven
+- REST API
+- MongoDB Atlas
 
-- Registro de usuarios.
-- Inicio de sesión utilizando usuarios almacenados en Room.
-- Validación individual de campos.
-- Validación de formato de correo electrónico.
-- Verificación de credenciales.
-- Mensajes visuales de error.
-- Cierre de sesión.
+## Pruebas
 
-### Módulo de Oportunidades
+- Kotest
+- MockK
+- Kotlin Coroutines Test
+- Kover
 
-- Listado de oportunidades almacenadas localmente.
-- Registro de nuevas oportunidades.
-- Edición de oportunidades existentes.
-- Consulta del detalle de una oportunidad.
-- Selección de prioridad.
-- Selección de potencial comercial.
-- Actualización del estado de gestión.
-- Registro de observaciones.
-- Validaciones por campo desde el ViewModel.
-- Persistencia local mediante Room.
+---
 
-### Módulo de Organizaciones
+# Arquitectura
 
-- Registro de organizaciones.
-- Listado de organizaciones almacenadas localmente.
-- Registro de nombre, tipo de organización y rubro.
-- Selección de región.
-- Selección de comuna para la Región Metropolitana.
-- Registro de observaciones.
-- Validaciones visuales por campo.
-- Lógica de validación centralizada en el ViewModel.
-- Persistencia local mediante Room.
+La aplicación utiliza arquitectura **MVVM (Model – View – ViewModel)**.
 
-### Perfiles y permisos
-
-La aplicación tiene tres perfiles, tomados de la lámina del profesor: **Ejecutivo Comercial**, **Supervisor Comercial** y
-**Gestión de Activaciones** (el perfil Marketing del diseño anterior quedó en pausa).
-
-- Toda cuenta nueva se crea como Ejecutivo. Solo un supervisor cambia perfiles y activa o desactiva cuentas.
-- Cada perfil ve y puede hacer cosas distintas sobre las mismas pantallas; los permisos se validan en la
-  pantalla y también en los repositorios.
-- Detalle de permisos en [CONVENCIONES.md](CONVENCIONES.md).
-
-### Activaciones, resultados y catálogo de eventos
-
-- **Activaciones:** las crea Gestión de Activaciones sobre oportunidades confirmadas y asigna el responsable.
-- **Resultados:** Gestión de Activaciones registra el resultado de cada activación; el supervisor los consulta.
-- **Catálogo de eventos:** el ejecutivo importa un evento de la API como oportunidad Pendiente.
-
-### Módulo de Eventos
-
-- Registro de eventos con tipo, fechas (con calendario), horario, comuna, región, organización responsable,
-  público esperado y condiciones de participación.
-- Una oportunidad se asocia a un evento y, por el evento, a su organización.
-
-### Módulo de Contactos
-
-- Contactos ficticios asociados a una organización, con cargo, área, medio de contacto preferente y estado.
-- La fecha del último contacto se actualiza con los seguimientos.
-
-### Seguimiento e historial
-
-- Registro de acciones sobre una oportunidad (tipo de acción, resultado, próxima acción y fecha).
-- Historial de gestiones en el detalle de la oportunidad, con registros automáticos de la creación y de
-  cada cambio de estado.
-
-### Alertas
-
-- Avisos internos: seguimientos atrasados y próximos, eventos próximos, propuestas sin respuesta,
-  oportunidades sin contacto, información incompleta y oportunidades sin responsable.
-
-### Búsqueda y filtros
-
-- Oportunidades: texto, estado, tipo, prioridad, región y responsable.
-- Eventos: texto, tipo, región y fecha. Contactos: texto, área y estado. Organizaciones: texto.
-
-## Recursos nativos del dispositivo
-
-### Cámara
-
-La aplicación permite capturar una fotografía como evidencia asociada a una oportunidad.
-
-El flujo incluye:
-
-- Solicitud del permiso de cámara en tiempo de ejecución.
-- Captura de fotografía.
-- Asociación de la imagen con la oportunidad.
-- Visualización de la fotografía almacenada.
-
-### Ubicación
-
-La aplicación permite registrar de forma puntual la ubicación asociada a una oportunidad.
-
-El flujo incluye:
-
-- Solicitud de permisos de ubicación en tiempo de ejecución.
-- Obtención de latitud y longitud.
-- Uso de ubicación de red o GPS según disponibilidad.
-- Persistencia de las coordenadas en Room.
-- Recuperación de la ubicación al volver a editar una oportunidad.
-
-La aplicación no realiza seguimiento permanente del dispositivo.
-
-## Códigos QR
-
-- Lectura de códigos QR utilizando la cámara.
-- Uso del contenido de un QR como fuente de información de una oportunidad.
-- Generación de código QR asociado a oportunidades.
-
-## Animaciones
-
-La aplicación incorpora animaciones funcionales para mejorar la retroalimentación visual, entre ellas:
-
-- Animación de interacción en el botón flotante de creación de oportunidades.
-- Aparición y desaparición animada de fotografías mediante `AnimatedVisibility`.
-
-## Persistencia local
-
-La aplicación utiliza **Room** para almacenar los datos localmente.
-
-Actualmente se almacenan, entre otros:
-
-- Usuarios.
-- Oportunidades.
-- Estado de gestión.
-- Prioridad y potencial comercial.
-- Fotografías asociadas.
-- Coordenadas de ubicación.
-- Organizaciones.
-
-- Activaciones y resultados de las activaciones.
-
-La base de datos se rehízo desde cero (versión 1, sin migraciones) mientras la aplicación no se publique. Si cambia el
-esquema, hay que borrar los datos de la app en el emulador.
-
-## Arquitectura
-
-El proyecto utiliza el patrón **MVVM**, separando las responsabilidades de la siguiente manera:
+Flujo principal de la aplicación:
 
 ```text
-ui/screens/     → Pantallas desarrolladas con Jetpack Compose
-viewmodel/      → Estado y lógica de negocio
-repository/     → Comunicación entre ViewModel y fuentes de datos
-database/       → Entidades Room, DAO y base de datos
-model/          → Modelos y estados de interfaz
-navigation/     → Navegación entre pantallas
-utils/          → Funciones auxiliares
+Pantalla Compose
+      ↓
+ViewModel / UiState
+      ↓
+Repository
+      ↓
+DAO / Room
 ```
 
-Los formularios utilizan `StateFlow` para mantener un estado reactivo y las validaciones principales se realizan desde los ViewModel, evitando acoplar la lógica de negocio a los Composable.
+Para el catálogo remoto de eventos:
 
-## Navegación
+```text
+Android
+   ↓
+Retrofit
+   ↓
+Spring Boot
+   ↓
+MongoDB Atlas
+```
 
-La aplicación cuenta con navegación entre sus principales módulos, incluyendo:
+Para la API externa:
 
-- Inicio de sesión.
-- Registro.
-- Menú principal.
-- Oportunidades.
-- Formulario de oportunidades.
-- Detalle de oportunidades.
-- Organizaciones.
-- Formulario de organizaciones.
-- Lector QR.
+```text
+Android
+   ↓
+Retrofit
+   ↓
+Nager.Date API
+```
 
-Se utilizan componentes de navegación de Jetpack Compose y controles para regresar entre pantallas.
+---
 
-## Trabajo colaborativo
+# Funcionalidades principales
 
-El desarrollo se gestiona mediante:
+## Autenticación
 
-- Git para control de versiones.
-- Repositorio compartido en GitHub.
-- Ramas de trabajo por integrante.
-- Commits técnicos asociados a funcionalidades concretas.
-- Trello para planificación y distribución de tareas.
+La aplicación permite:
 
-### Tablero Trello
+- iniciar sesión;
+- registrar usuarios;
+- validar credenciales;
+- mantener usuarios almacenados localmente;
+- controlar usuarios activos e inactivos;
+- trabajar con distintos perfiles.
 
-[Ver tablero de planificación en Trello](https://trello.com/b/NSmDSIpI/desarrollo-de-aplicaciones-moviles003v)
+Perfiles disponibles:
 
-## Pasos para ejecutar
+- Ejecutivo Comercial
+- Supervisor Comercial
+- Gestión de Activaciones
 
-1. Clonar el repositorio:
+---
+
+# Gestión de oportunidades
+
+El módulo de oportunidades permite:
+
+- crear oportunidades;
+- visualizar oportunidades;
+- editar oportunidades;
+- eliminar oportunidades;
+- modificar su estado;
+- seleccionar prioridad;
+- seleccionar potencial;
+- asociar organizaciones;
+- asociar contactos;
+- registrar evidencia fotográfica;
+- utilizar la cámara del dispositivo;
+- mantener persistencia mediante Room.
+
+Estados principales:
+
+- Pendiente
+- En gestión
+- Confirmada
+- Descartada
+
+---
+
+# Organizaciones
+
+El módulo de organizaciones permite administrar empresas u organizaciones relacionadas con las oportunidades comerciales.
+
+Incluye:
+
+- creación;
+- listado;
+- edición;
+- eliminación;
+- validaciones;
+- persistencia mediante Room.
+
+---
+
+# Contactos
+
+Permite registrar contactos asociados a organizaciones.
+
+Incluye:
+
+- creación;
+- edición;
+- eliminación;
+- filtros;
+- validación de correo;
+- validación de teléfono;
+- asociación con organizaciones.
+
+---
+
+# Seguimientos
+
+Permite registrar acciones realizadas sobre una oportunidad.
+
+Entre ellas:
+
+- llamadas;
+- reuniones;
+- correos;
+- contacto relacionado;
+- resultado de la acción;
+- próxima acción;
+- próxima fecha de seguimiento;
+- observaciones.
+
+El sistema valida que una próxima fecha de seguimiento no sea anterior a la fecha de la acción realizada.
+
+---
+
+# Activaciones
+
+Las oportunidades confirmadas pueden utilizarse para generar activaciones.
+
+El módulo permite:
+
+- seleccionar oportunidades confirmadas;
+- asignar responsables;
+- registrar información de la activación;
+- actualizar activaciones;
+- eliminar registros;
+- controlar permisos según perfil.
+
+---
+
+# Resultados
+
+Permite registrar el resultado obtenido después de una activación.
+
+Se pueden almacenar:
+
+- activación asociada;
+- resultado;
+- cantidad de contactos generados;
+- evidencia;
+- observaciones.
+
+---
+
+# Catálogo remoto de eventos
+
+La aplicación incorpora un catálogo de eventos almacenado en **MongoDB Atlas**.
+
+La comunicación se realiza mediante un microservicio desarrollado con **Spring Boot**.
+
+Arquitectura:
+
+```text
+Aplicación Android
+       ↓
+    Retrofit
+       ↓
+Spring Boot REST API
+       ↓
+ MongoDB Atlas
+```
+
+Desde la aplicación es posible realizar operaciones CRUD remotas.
+
+## Operaciones implementadas
+
+### Consultar eventos
+
+```http
+GET /eventos
+```
+
+### Consultar evento por ID
+
+```http
+GET /eventos/{id}
+```
+
+### Crear evento
+
+```http
+POST /eventos
+```
+
+### Actualizar evento
+
+```http
+PUT /eventos/{id}
+```
+
+### Eliminar evento
+
+```http
+DELETE /eventos/{id}
+```
+
+Algunas operaciones utilizan los encabezados:
+
+```text
+X-Perfil
+X-Usuario-Id
+```
+
+para identificar al usuario que realiza la operación.
+
+---
+
+# Permisos del catálogo remoto
+
+## Ejecutivo Comercial
+
+Puede:
+
+- consultar;
+- crear;
+- editar.
+
+## Supervisor Comercial
+
+Puede:
+
+- consultar;
+- editar;
+- eliminar.
+
+## Gestión de Activaciones
+
+Puede:
+
+- consultar.
+
+---
+
+# MongoDB Atlas
+
+El microservicio utiliza MongoDB Atlas como base de datos remota.
+
+Base utilizada:
+
+```text
+dsy1105_equipo1
+```
+
+Colección principal:
+
+```text
+eventos
+```
+
+La URI de conexión se mantiene fuera del repositorio público mediante configuración local.
+
+---
+
+# API externa
+
+Además del microservicio propio, la aplicación consume una API pública externa.
+
+## Nager.Date
+
+Servicio utilizado:
+
+```text
+Nager.Date Public Holidays API
+```
+
+La aplicación consulta los feriados oficiales de Chile.
+
+Ejemplo conceptual:
+
+```http
+GET /api/v3/PublicHolidays/2026/CL
+```
+
+Esta información se utiliza como apoyo para la planificación de eventos y oportunidades comerciales.
+
+La API externa se consume directamente desde Android mediante Retrofit.
+
+---
+
+# Diferencia entre microservicio propio y API externa
+
+## Microservicio propio
+
+```text
+Android → Retrofit → Spring Boot → MongoDB Atlas
+```
+
+El equipo controla:
+
+- backend;
+- endpoints;
+- reglas de negocio;
+- base de datos.
+
+## API externa
+
+```text
+Android → Retrofit → Nager.Date
+```
+
+Es un servicio externo utilizado únicamente como fuente de información.
+
+---
+
+# Recursos nativos
+
+## Cámara
+
+La aplicación utiliza la cámara del dispositivo para registrar fotografías como evidencia.
+
+Tecnologías utilizadas:
+
+- permisos Android;
+- FileProvider;
+- Activity Result API;
+- TakePicture.
+
+---
+
+# Código QR
+
+La aplicación incorpora funcionalidades relacionadas con códigos QR.
+
+Permite utilizar QR como recurso complementario dentro del sistema móvil.
+
+---
+
+# Persistencia local
+
+La aplicación utiliza **Room** como base de datos local.
+
+Principales componentes:
+
+```text
+Entity
+DAO
+Repository
+ViewModel
+Screen
+```
+
+La información almacenada localmente permanece disponible después de cerrar y volver a abrir la aplicación.
+
+---
+
+# Pruebas unitarias
+
+Las pruebas unitarias de la aplicación utilizan:
+
+- Kotest;
+- MockK;
+- Coroutines Test;
+- Kover.
+
+Se prueban principalmente las capas:
+
+```text
+ViewModel
+Repository
+```
+
+Entre los componentes cubiertos se encuentran:
+
+- LoginViewModel
+- OportunidadViewModel
+- ContactoViewModel
+- OrganizacionViewModel
+- ActivacionViewModel
+- ResultadoViewModel
+- SeguimientoViewModel
+- FeriadoViewModel
+- UsuariosViewModel
+
+También se validan:
+
+- formularios;
+- reglas de negocio;
+- validaciones;
+- errores de Repository;
+- operaciones CRUD;
+- estados exitosos;
+- estados de error.
+
+## Cobertura
+
+La cobertura se mide mediante **Kover**.
+
+Estado durante la etapa final de QA:
+
+```text
+Cobertura en actualización.
+```
+
+Este valor debe reemplazarse por el porcentaje final obtenido antes de cerrar la entrega.
+
+Para ejecutar la cobertura:
+
+```powershell
+.\gradlew :app:koverLogDebug --no-daemon
+```
+
+Para generar el informe HTML:
+
+```powershell
+.\gradlew :app:koverHtmlReportDebug --no-daemon
+```
+
+Informe:
+
+```text
+app/build/reports/kover/htmlDebug/index.html
+```
+
+---
+
+# Ejecutar pruebas Android
+
+Desde la raíz del proyecto:
+
+```powershell
+.\gradlew :app:testDebugUnitTest --no-daemon
+```
+
+---
+
+# Pruebas del backend
+
+El backend cuenta con pruebas automatizadas.
+
+También se incluye un script para facilitar su ejecución:
+
+```text
+EJECUTAR_TESTS_BACKEND.bat
+```
+
+Resultado validado durante QA:
+
+```text
+Tests run: 5
+Failures: 0
+Errors: 0
+Skipped: 0
+BUILD SUCCESS
+```
+
+---
+
+# Ejecutar backend
+
+Existe un archivo de apoyo:
+
+```text
+INICIAR_BACKEND.bat
+```
+
+También puede iniciarse manualmente desde la carpeta del backend utilizando Maven Wrapper.
+
+El backend necesita el archivo local:
+
+```text
+backend/src/main/resources/application-local.properties
+```
+
+con la configuración privada de MongoDB Atlas.
+
+Las credenciales y URI privadas no se almacenan en GitHub.
+
+Cuando el backend se inicia correctamente debe aparecer:
+
+```text
+Started BackendApplicationKt
+```
+
+El catálogo puede verificarse desde:
+
+```text
+http://localhost:8080/eventos
+```
+
+---
+
+# Ejecución con teléfono físico
+
+Para las pruebas se utilizó un dispositivo Android físico.
+
+La aplicación se conecta al backend local mediante:
 
 ```bash
-git clone https://github.com/luchovduoc/DSY1105.git
+adb reverse tcp:8080 tcp:8080
 ```
 
-2. Abrir el proyecto con Android Studio.
+También se incluye:
 
-3. Esperar que Gradle sincronice las dependencias.
+```text
+CONECTAR_TELEFONO.bat
+```
 
-4. Ejecutar la aplicación en un emulador compatible o en un dispositivo Android físico.
+para simplificar esta configuración.
 
-5. Crear una cuenta desde la pantalla de registro.
+La aplicación Android utiliza como dirección local del backend:
 
-6. Iniciar sesión con las credenciales registradas.
+```text
+http://127.0.0.1:8080/
+```
 
-7. Utilizar los módulos disponibles desde el menú principal.
+Gracias a `adb reverse`, esta dirección permite que el teléfono acceda al Spring Boot que se está ejecutando en el computador.
 
-## Recomendaciones para las pruebas
+---
 
-Para comprobar correctamente los recursos nativos se recomienda utilizar un dispositivo Android físico.
+# APK Release firmado
 
-Para probar la cámara:
+El proyecto genera una versión Release firmada de la aplicación.
 
-- Otorgar el permiso de cámara cuando la aplicación lo solicite.
+APK generado:
 
-Para probar la ubicación:
+```text
+app/build/outputs/apk/release/app-release.apk
+```
 
-- Activar la ubicación del dispositivo.
-- Otorgar los permisos solicitados.
-- Mantener disponible Wi-Fi, datos móviles o GPS.
+La firma fue realizada mediante un archivo:
 
-## Consideraciones
+```text
+.jks
+```
 
-- Todos los datos utilizados durante las pruebas deben ser ficticios.
-- La aplicación utiliza persistencia local mediante Room.
-- No se requiere una base de datos remota para usar la app. El catálogo de eventos usa una API REST (Retrofit) del
-  backend en `backend/`; si el servidor está apagado, la pantalla muestra un aviso y el resto de la app funciona igual.
-- La ubicación se obtiene únicamente cuando el usuario solicita registrarla.
-- No se realiza seguimiento permanente de la ubicación del usuario.
+El archivo de firma y su configuración forman parte de la preparación de entrega.
+
+Las contraseñas privadas de firma **no se publican en el repositorio**.
+
+## Verificación
+
+La firma del APK fue comprobada mediante `apksigner`.
+
+El APK utiliza firma Android v2.
+
+SHA-256 del APK validado durante QA:
+
+```text
+5599CC2FF456EF11C0BECFA2961367E28D92EB4D3B9371A275981967FED596DD
+```
+
+---
+
+# Usuarios de demostración
+
+Para facilitar la revisión se encuentran disponibles usuarios de prueba.
+
+## Supervisor Comercial
+
+```text
+supervisor@agencia.cl
+12345
+```
+
+## Ejecutivo Comercial
+
+```text
+ejecutivo@agencia.cl
+12345
+```
+
+## Gestión de Activaciones
+
+```text
+activaciones@agencia.cl
+12345
+```
+
+Estas cuentas corresponden únicamente a datos de demostración académica.
+
+---
+
+# GitHub
+
+Repositorio del proyecto:
+
+```text
+https://github.com/luchovduoc/DSY1105
+```
+
+El desarrollo se realizó mediante control de versiones Git y GitHub.
+
+El historial permite identificar los cambios realizados durante el desarrollo del proyecto.
+
+---
+
+# Trello
+
+El equipo utilizó Trello para organizar:
+
+- funcionalidades;
+- desarrollo;
+- pruebas;
+- tareas pendientes;
+- actividades terminadas;
+- responsabilidades de los integrantes.
+
+El tablero sirve como evidencia del proceso de planificación y trabajo colaborativo.
+
+---
+
+# Flujo de demostración recomendado
+
+Durante la revisión del proyecto puede demostrarse el siguiente flujo:
+
+```text
+1. Iniciar Spring Boot
+2. Verificar GET /eventos
+3. Conectar teléfono mediante ADB
+4. Iniciar la aplicación
+5. Iniciar sesión
+6. Mostrar funcionalidades locales
+7. Abrir catálogo remoto
+8. Crear evento
+9. Editar evento
+10. Verificar cambio en backend/MongoDB
+11. Eliminar evento
+12. Abrir feriados de Chile
+13. Mostrar consumo de API externa
+14. Ejecutar pruebas unitarias
+15. Mostrar cobertura Kover
+16. Mostrar APK firmado
+17. Mostrar GitHub y Trello
+```
+
+---
+
+# Seguridad
+
+El proyecto evita almacenar en el repositorio público:
+
+- contraseñas privadas;
+- URI de MongoDB Atlas;
+- passwords del JKS;
+- información sensible de configuración.
+
+Los valores privados se mantienen en archivos locales excluidos del control de versiones.
+
+---
+
+# Estado del proyecto
+
+Proyecto preparado para la entrega final de **DSY1105 – Aplicaciones Móviles**.
+
+Incluye:
+
+- aplicación Android funcional;
+- arquitectura MVVM;
+- persistencia Room;
+- recursos nativos;
+- CRUD local;
+- microservicio Spring Boot;
+- MongoDB Atlas;
+- CRUD remoto;
+- API externa;
+- Retrofit;
+- pruebas unitarias;
+- cobertura Kover;
+- APK Release firmado;
+- GitHub;
+- Trello.

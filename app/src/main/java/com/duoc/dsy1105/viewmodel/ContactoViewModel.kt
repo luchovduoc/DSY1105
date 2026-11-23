@@ -21,12 +21,14 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-class ContactoViewModel(app: Application) : AndroidViewModel(app) {
-
-    private val repository = ContactoRepository(app)
-    private val organizacionRepository = OrganizacionRepository(app)
-
-    // Filtros de la lista (texto, area y estado). Se declaran antes de la lista que los usa.
+class ContactoViewModel @JvmOverloads constructor(
+    app: Application,
+    private val repository: ContactoRepository = ContactoRepository(app),
+    private val organizacionRepository: OrganizacionRepository = OrganizacionRepository(app),
+    private val emailValido: (String) -> Boolean = {
+        android.util.Patterns.EMAIL_ADDRESS.matcher(it).matches()
+    }
+) : AndroidViewModel(app) {
     private val _filtros = MutableStateFlow(FiltrosContacto())
     val filtros: StateFlow<FiltrosContacto> = _filtros
 
@@ -94,7 +96,7 @@ class ContactoViewModel(app: Application) : AndroidViewModel(app) {
             organizacion = if (a.organizacionId == 0L) "La organización es obligatoria" else null,
             area = if (a.area.isBlank()) "El área es obligatoria" else null,
             email = if (a.email.isNotBlank() &&
-                !android.util.Patterns.EMAIL_ADDRESS.matcher(a.email).matches()
+                !emailValido(a.email)
             ) "Ingresa un correo válido" else null,
             telefono = if (a.telefono.isNotBlank() && !TELEFONO.matches(a.telefono)) {
                 "Ingresa un teléfono válido"

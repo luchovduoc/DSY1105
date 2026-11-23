@@ -18,9 +18,10 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-class OrganizacionViewModel(app: Application) : AndroidViewModel(app) {
-
-    private val repository = OrganizacionRepository(app)
+class OrganizacionViewModel @JvmOverloads constructor(
+    app: Application,
+    private val repository: OrganizacionRepository = OrganizacionRepository(app)
+) : AndroidViewModel(app) {
 
     // Texto de busqueda. Se declara antes de la lista que lo usa.
     private val _filtroTexto = MutableStateFlow("")

@@ -18,10 +18,11 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-class SeguimientoViewModel(app: Application) : AndroidViewModel(app) {
-
-    private val repository = SeguimientoRepository(app)
-    private val contactoRepository = ContactoRepository(app)
+class SeguimientoViewModel @JvmOverloads constructor(
+    app: Application,
+    private val repository: SeguimientoRepository = SeguimientoRepository(app),
+    private val contactoRepository: ContactoRepository = ContactoRepository(app)
+) : AndroidViewModel(app) {
 
     // Contactos que se pueden asociar a la acción (opcional)
     val contactos: StateFlow<List<ContactoEntity>> =

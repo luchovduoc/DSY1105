@@ -5,6 +5,7 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.ksp)
+    id("org.jetbrains.kotlinx.kover") version "0.9.11"
 }
 
 val keystorePropertiesFile = rootProject.file("keystore.properties")
@@ -131,4 +132,16 @@ dependencies {
 // Obligatorio para usar JUnit 5 en las pruebas unitarias
 tasks.withType<Test> {
     useJUnitPlatform()
+}
+kover {
+    reports {
+        filters {
+            includes {
+                classes(
+                    "com.duoc.dsy1105.viewmodel.*",
+                    "com.duoc.dsy1105.repository.*"
+                )
+            }
+        }
+    }
 }

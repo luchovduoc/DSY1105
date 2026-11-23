@@ -14,13 +14,19 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-class LoginViewModel(app: Application) : AndroidViewModel(app) {
-
-    private val authRepository = AuthRepository(app)
+class LoginViewModel @JvmOverloads constructor(
+    app: Application,
+    private val authRepository: AuthRepository = AuthRepository(app),
+    private val emailValido: (String) -> Boolean = {
+        android.util.Patterns.EMAIL_ADDRESS.matcher(it).matches()
+    }
+) : AndroidViewModel(app) {
 
     init {
         // Garantiza que existan los usuarios de demostración (datos ficticios)
-        viewModelScope.launch { authRepository.asegurarUsuariosDemo() }
+        viewModelScope.launch {
+            authRepository.asegurarUsuariosDemo()
+        }
     }
 
     // Usuario con sesión iniciada (null = sin sesión)
@@ -54,7 +60,7 @@ class LoginViewModel(app: Application) : AndroidViewModel(app) {
         val errores = LoginErrores(
             email = when {
                 a.email.isBlank() -> "El email es obligatorio"
-                !android.util.Patterns.EMAIL_ADDRESS.matcher(a.email).matches() ->
+                !emailValido(a.email) ->
                     "Ingresa un email válido"
                 else -> null
             },
@@ -137,7 +143,7 @@ class LoginViewModel(app: Application) : AndroidViewModel(app) {
             nombre = if (a.nombre.isBlank()) "El nombre es obligatorio" else null,
             email = when {
                 a.email.isBlank() -> "El email es obligatorio"
-                !android.util.Patterns.EMAIL_ADDRESS.matcher(a.email).matches() ->
+                !emailValido(a.email) ->
                     "Ingresa un email válido"
                 else -> null
             },

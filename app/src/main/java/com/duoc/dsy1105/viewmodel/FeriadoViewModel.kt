@@ -8,7 +8,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
-class FeriadoViewModel(
+class FeriadoViewModel (
     private val repository: FeriadoRepository = FeriadoRepository()
 ) : ViewModel() {
 

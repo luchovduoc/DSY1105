@@ -28,14 +28,15 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-class OportunidadViewModel(app: Application) : AndroidViewModel(app) {
-
-    private val repository = OportunidadRepository(app)
-    private val usuarioRepository = UsuarioRepository(app)
-    private val eventoRepository = EventoRepository(app)
-    private val organizacionRepository = OrganizacionRepository(app)
-    private val contactoRepository = ContactoRepository(app)
-    private val seguimientoRepository = SeguimientoRepository(app)
+class OportunidadViewModel @JvmOverloads constructor(
+    app: Application,
+    private val repository: OportunidadRepository = OportunidadRepository(app),
+    private val usuarioRepository: UsuarioRepository = UsuarioRepository(app),
+    private val eventoRepository: EventoRepository = EventoRepository(app),
+    private val organizacionRepository: OrganizacionRepository = OrganizacionRepository(app),
+    private val contactoRepository: ContactoRepository = ContactoRepository(app),
+    private val seguimientoRepository: SeguimientoRepository = SeguimientoRepository(app)
+) : AndroidViewModel(app) {
 
     // Historial de gestiones de una oportunidad (mas reciente primero)
     fun seguimientosDe(oportunidadId: Long): Flow<List<SeguimientoEntity>> =

@@ -18,9 +18,10 @@ data class UsuariosUiState(
     val error: String? = null
 )
 
-class UsuariosViewModel(app: Application) : AndroidViewModel(app) {
-
-    private val repository = UsuarioRepository(app)
+class UsuariosViewModel @JvmOverloads constructor(
+    app: Application,
+    private val repository: UsuarioRepository = UsuarioRepository(app)
+) : AndroidViewModel(app) {
 
     // Lista de usuarios desde Room
     val usuarios: StateFlow<List<UsuarioEntity>> =
