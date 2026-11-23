@@ -13,6 +13,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import retrofit2.HttpException
 
 // Catálogo de eventos que viene de la API. Solo se consulta; "Importar" crea una oportunidad en Room.
 // @JvmOverloads conserva el constructor que solo recibe Application (el que usa Android);
@@ -82,6 +83,88 @@ class CatalogoViewModel @JvmOverloads constructor(
             _aviso.value = if (error == null) "Oportunidad creada a partir de \"${evento.nombre}\"" else null
         }
     } // fin importar
+
+    // Crea un evento directamente en MongoDB mediante Spring Boot
+    fun crearEvento(evento: EventoRemoto, solicitante: Usuario) {
+        viewModelScope.launch {
+            try {
+                repository.crearEvento(
+                    perfil = solicitante.perfil.etiqueta,
+                    usuarioId = solicitante.id.toLong(),
+                    evento = evento
+                )
+
+                cargarEventos()
+                _mensaje.value = null
+                _aviso.value = "Evento creado correctamente"
+            } catch (e: HttpException) {
+            _aviso.value = null
+            _mensaje.value = "Error HTTP ${e.code()}: ${e.response()?.errorBody()?.string()}"
+            } catch (e: Exception) {
+            _aviso.value = null
+            _mensaje.value = "Error: ${e.message}"
+            }
+        }
+    }
+
+    // Actualiza un evento existente en MongoDB
+    fun actualizarEvento(evento: EventoRemoto, solicitante: Usuario) {
+        viewModelScope.launch {
+            val id = evento.id
+
+            if (id.isNullOrBlank()) {
+                _mensaje.value = "El evento no tiene identificador"
+                return@launch
+            }
+
+            try {
+                repository.actualizarEvento(
+                    id = id,
+                    perfil = solicitante.perfil.etiqueta,
+                    evento = evento
+                )
+
+                cargarEventos()
+                _mensaje.value = null
+                _aviso.value = "Evento actualizado correctamente"
+            } catch (e: Exception) {
+                _aviso.value = null
+                _mensaje.value = "No se pudo actualizar el evento"
+            }
+        }
+    }
+
+    // Elimina un evento remoto
+    fun eliminarEvento(evento: EventoRemoto, solicitante: Usuario) {
+        viewModelScope.launch {
+            val id = evento.id
+
+            if (id.isNullOrBlank()) {
+                _mensaje.value = "El evento no tiene identificador"
+                return@launch
+            }
+
+            try {
+                val respuesta = repository.eliminarEvento(
+                    id = id,
+                    perfil = solicitante.perfil.etiqueta,
+                    usuarioId = solicitante.id.toLong()
+                )
+
+                if (respuesta.isSuccessful) {
+                    cargarEventos()
+                    _mensaje.value = null
+                    _aviso.value = "Evento eliminado correctamente"
+                } else {
+                    _aviso.value = null
+                    _mensaje.value = "No tienes permiso para eliminar este evento"
+                }
+            } catch (e: Exception) {
+                _aviso.value = null
+                _mensaje.value = "No se pudo eliminar el evento"
+            }
+        }
+    }
 
     private companion object {
         const val FUENTE_CATALOGO = "Catálogo de eventos (API)"

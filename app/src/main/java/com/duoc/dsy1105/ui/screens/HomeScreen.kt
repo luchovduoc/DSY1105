@@ -259,11 +259,15 @@ private fun accesosDelPerfil(perfil: Perfil?): List<Triple<String, String, Strin
         Perfil.EJECUTIVO -> listOf(
             Triple("Oportunidades", "Registra oportunidades y su seguimiento", "oportunidades"),
             Triple("Catálogo de eventos", "Eventos de la API; impórtalos como oportunidad", "catalogo"),
+            Triple("Feriados de Chile", "API externa para apoyar la planificación de eventos", "feriados"),
             Triple("Organizaciones", "Empresas con las que se trabaja", "organizaciones"),
             Triple("Contactos", "Personas de contacto de cada organización", "contactos")
+
         )
         Perfil.SUPERVISOR -> listOf(
             Triple("Oportunidades", "Revisa, cambia el estado y asigna responsable", "oportunidades"),
+            Triple("Catálogo de eventos", "Eventos remotos disponibles en MongoDB", "catalogo"),
+            Triple("Feriados de Chile", "API externa para apoyar la planificación de eventos", "feriados"),
             Triple("Activaciones", "Consulta las activaciones programadas", "activaciones"),
             Triple("Resultados", "Consulta los resultados de las activaciones", "resultados"),
             Triple("Gestión de usuarios", "Perfiles y cuentas", "usuarios")

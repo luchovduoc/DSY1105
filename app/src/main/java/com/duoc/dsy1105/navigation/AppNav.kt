@@ -30,7 +30,9 @@ import com.duoc.dsy1105.ui.screens.ResultadoFormScreen
 import com.duoc.dsy1105.ui.screens.ResultadosScreen
 import com.duoc.dsy1105.ui.screens.SeguimientoFormScreen
 import com.duoc.dsy1105.ui.screens.UsuariosScreen
+import com.duoc.dsy1105.ui.screens.FeriadosScreen
 import com.duoc.dsy1105.viewmodel.LoginViewModel
+import com.duoc.dsy1105.viewmodel.FeriadoViewModel
 
 @Composable
 fun AppNav(
@@ -153,6 +155,16 @@ fun AppNav(
                 viewModel = catalogoViewModel,
                 usuario = usuario,
                 onVolver = { navController.popBackStack() }
+            )
+        }
+        composable("feriados") {
+            val feriadoViewModel: FeriadoViewModel = viewModel()
+
+            FeriadosScreen(
+                viewModel = feriadoViewModel,
+                onVolver = {
+                    navController.popBackStack()
+                }
             )
         }
         composable("alertas") {
